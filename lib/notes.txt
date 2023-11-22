@@ -1,0 +1,5 @@
+1. You can't use consumer outside the build(), that caused an error when I tried to do it to reach radioGroupValue variable
+   -which is in Auth provider- from buildSelectionLabel().
+
+2. problem of app disability to run on mobile because of an error with firebase, solved by changing the projcet and add
+   -multiDexEnabled true- to defaultConfig block in android/app/build.gradle

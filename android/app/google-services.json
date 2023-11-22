@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "110393023133",
+    "project_id": "ask-me-75670",
+    "storage_bucket": "ask-me-75670.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110393023133:android:6d53fe5de11208f677d274",
+        "android_client_info": {
+          "package_name": "com.example.ask_me"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgoX-z8o-yHB11jADgLnpxJEjdHC-X80s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110393023133:android:af673386829a0b2e77d274",
+        "android_client_info": {
+          "package_name": "com.example.ask_me2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgoX-z8o-yHB11jADgLnpxJEjdHC-X80s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
