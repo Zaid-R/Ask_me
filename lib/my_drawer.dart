@@ -1,0 +1,131 @@
+import 'package:ask_me2/models/admin_provider.dart';
+import 'package:ask_me2/models/menu_item.dart';
+import 'package:ask_me2/utils.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+
+class MyDrawer extends StatefulWidget {
+  final List<MenuItem> listOfPages;
+  const MyDrawer({
+    super.key,
+    required this.listOfPages,
+  });
+
+  @override
+  _MyDrawerState createState() => _MyDrawerState();
+}
+
+class _MyDrawerState extends State<MyDrawer> {
+  List<MenuItem> convertMapToList(Map<int, MenuItem> map) {
+    List<MenuItem> x = [];
+    map.forEach((index, item) => x.add(MenuItem(
+        title: item.title, icon: item.icon, child: item.child, index: index)));
+    return x;
+  }
+
+  List<Widget> pages = [];
+  @override
+  void initState() {
+    pages = convertMapToList(widget.listOfPages.asMap())
+        .map((item) => buildMenuItem(item))
+        .toList();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int selectedPageId = context
+        .select<AdminProvider, int>((provider) => provider.drawerId);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: themeColor,
+        title: Text(widget.listOfPages[selectedPageId].title),
+      ),
+      body: widget.listOfPages[selectedPageId].child,
+      drawer: Drawer(
+        child: Column(
+          children: [
+            buildDrawerHeader(),
+            Container(
+              padding: const EdgeInsets.only(
+                top: 15,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: pages,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildMenuItem(MenuItem item) {
+    return Container(
+      color: Colors.black26,
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.all(10.0),
+      child: InkWell(
+        onTap: () {
+          context.read<AdminProvider>().setSelectedDrawerId(item.index!);
+          Navigator.pop(context);
+        },
+        child: Row(
+          
+          children: [
+            const SizedBox(width: 10,),
+            Icon(
+              item.icon,
+              size: 30,
+              color: Colors.black,
+            ),
+            const SizedBox(width: 10,),
+            Text(
+              item.title,
+              style: GoogleFonts.aBeeZee(fontWeight: FontWeight.w400,fontSize: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container buildDrawerHeader() {
+    return Container(
+      color: themeColor,
+      width: double.infinity,
+      height: 200,
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            height: 70,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: NetworkImage(
+                    'https://ew.com/thmb/T9bUy7ZyexKWzphd8Rs7zJG7qvk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/fight-club-2000-b85f7ccd3592499fb07d57e3d6a9f18f.jpg'),
+              ),
+            ),
+          ),
+          const Text(
+            "Rapid Tech",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          Text(
+            "info@rapidtech.dev",
+            style: TextStyle(
+              color: Colors.grey[200],
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

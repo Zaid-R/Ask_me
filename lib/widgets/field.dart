@@ -1,3 +1,4 @@
+import 'package:ask_me2/utils.dart';
 import 'package:flutter/material.dart';
 
 import '../pages/auth_page.dart';
@@ -53,8 +54,8 @@ class _FieldState extends State<Field>{
         decoration: InputDecoration(
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(50.0),
-            borderSide: BorderSide(
-              color: AuthPage.color
+            borderSide: const BorderSide(
+              color: themeColor
             )
           ),
           contentPadding: const EdgeInsets.all(15),

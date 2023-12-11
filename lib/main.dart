@@ -1,11 +1,17 @@
 import 'dart:ui';
 import 'package:ask_me2/firebase_options.dart';
+import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/models/auth.dart';
+import 'package:ask_me2/pages/admin_pages/admin_page.dart';
+import 'package:ask_me2/pages/auth_page.dart';
+import 'package:ask_me2/pages/user_pages/categories.dart';
+import 'package:ask_me2/pages/user_pages/question_form.dart';
+import 'package:ask_me2/test_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
-
-import 'pages/auth_page.dart';
 
 class NoThumbScrollBehavior extends ScrollBehavior {
   @override
@@ -19,33 +25,13 @@ class NoThumbScrollBehavior extends ScrollBehavior {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+  await Future.wait([
+    GetStorage.init(),
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    )
+  ]);
   runApp(const MyApp());
-
-  // runApp(FutureBuilder(
-  //     future: Firebase.initializeApp(
-  //       options: DefaultFirebaseOptions.currentPlatform,
-  //     ),
-  //     builder: (_, snapshot) {
-  //       return snapshot.hasData
-  //           ? const MyApp()
-  //           : const MaterialApp(
-  //               debugShowCheckedModeBanner: false,
-  //               home: Scaffold(
-  //                 body: Center(
-  //                   child: CircularProgressIndicator(),
-  //                 ),
-  //               ),
-  //             );
-  //     }));
-  /*
-    }
-    catch(e){
-      print('Motherfucking error is : ${e.toString()}');
-    }
-    */
 }
 
 class MyApp extends StatelessWidget {
@@ -53,8 +39,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => Auth(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Auth>(create: (_) => Auth()),
+        ChangeNotifierProvider<AdminProvider>(create: (_) => AdminProvider())
+      ],
       child: MaterialApp(
         //to hide scroll bar of listViews
         scrollBehavior: NoThumbScrollBehavior().copyWith(scrollbars: false),
@@ -66,7 +55,14 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const AuthPage(),
+        home: TestPage()
+        // readEmail() != null
+        //     ? CategoriesPage()
+        //     : readID() == '0000'
+        //         ? const AdminPage()
+        //         : readID() != null
+        //             ? const TestPage(title: 'Expert Page Test')
+        //             : CategoriesPage(),
       ),
     );
   }

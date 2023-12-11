@@ -9,13 +9,16 @@ environment:
   sdk: '>=3.3.0-143.0.dev <4.0.0'
 
 dependencies:
+  cached_network_image: null
   cloud_firestore: null
   cupertino_icons: null
   firebase_auth: null
   firebase_core: null
+  firebase_storage: null
   flutter:
     sdk: flutter
-  get_storage: 
+  get_storage: null
+  google_fonts: null
   image_picker: null
   intl: null
   provider: null

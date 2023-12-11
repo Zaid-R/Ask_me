@@ -1,8 +1,11 @@
-import 'dart:io';
-import 'dart:typed_data';
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
+import 'dart:io';
+import 'package:ask_me2/loacalData.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ask_me2/utils.dart';
 import 'package:intl/intl.dart';
 import '../models/auth.dart';
 import 'package:provider/provider.dart';
@@ -10,30 +13,17 @@ import '../widgets/field.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
-  static Color color = const Color.fromRGBO(17, 138, 178, 1);
   @override
   State<AuthPage> createState() => _AuthPageState();
 }
 
-//Sit dolor veniam veniam exercitation do ipsum ex aute eiusmod. Deserunt aute ullamco laboris fugiat esse. Amet sunt officia cillum proident ut aliquip anim laboris laboris. Excepteur ullamco consectetur culpa fugiat mollit magna eiusmod. Laboris non cillum est ad minim commodo ex nulla nulla cupidatat pariatur occaecat tempor ullamco. Quis proident irure tempor elit. Minim Lorem nisi ullamco ad cupidatat ex deserunt proident laboris pariatur anim ipsum nulla incididunt.
-
-Color _buttonColor = const Color.fromRGBO(178, 57, 17, 1);
-
 class _AuthPageState extends State<AuthPage> {
-  final Map<String, String?> _authData = {
-    "email": "",
-    "password": "",
-    'phoneNumber': '',
-    'first name': '',
-    'last name': '',
-  };
-
   final userTypeButtonStyle = ButtonStyle(
-      backgroundColor: MaterialStatePropertyAll(_buttonColor.withRed(200)));
-
+      backgroundColor: MaterialStatePropertyAll(buttonColor.withRed(200)));
+  final idController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey();
-
-  final _passwordController = TextEditingController();
+  final emailController = TextEditingController(text: 'zaid.rjab1@gmail.com');
+  final _passwordController = TextEditingController(text: '123123');
   var radioValue = 1;
 
   Widget buildLabelBackground(Widget child) => Container(
@@ -52,8 +42,7 @@ class _AuthPageState extends State<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
-    File? image =
-        context.select<Auth, File?>((provider) => provider.image);
+    File? image = context.select<Auth, File?>((provider) => provider.image);
     DateTime now = DateTime.now();
     DateTime birthDate =
         context.select<Auth, DateTime>((provider) => provider.birthDate);
@@ -67,8 +56,8 @@ class _AuthPageState extends State<AuthPage> {
     bool isExpert = context.select<Auth, bool>((provider) => provider.isExpert);
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    TextStyle linkTextStyle = TextStyle(
-        color: AuthPage.color,
+    TextStyle linkTextStyle = const TextStyle(
+        color: themeColor,
         fontSize: 15,
         fontWeight: FontWeight.w600,
         letterSpacing: 1,
@@ -83,86 +72,96 @@ class _AuthPageState extends State<AuthPage> {
           controller: _passwordController,
           validator: (value) {
             if (value != null) {
-              if ((value.isEmpty || value.length <= 5) &&
-                  authMode == AuthMode.logIn) {
+              if (value.isEmpty || value.length != 6) {
                 return 'Password should be at least 6 digits';
               }
-              //Complete this after dealing with database
-              /* else if (authMode == authMode.signUp&&value!= passwordInDB) {
-                          return 'Wrong password';
-                        } */
             }
             return null;
           },
           onSaved: (newValue) {
-            setState(() {
-              _authData['password'] = newValue;
-            });
+            context.read<Auth>().addAuthData('password', newValue!);
           },
           width: screenWidth * 0.6);
     }
-
-    //  void _submit() async {
-    //   //make sure the data is valid
-    //   if (!_formKey.currentState!.validate()) return;
-    //   //save the data after passing the condition successfully
-    //   _formKey.currentState!.save();
-    //   try {
-    //     var userDoc = FirebaseFirestore.instance
-    //         .collection('users')
-    //         .doc(_authData['email']!);
-    //     var gottenUserDoc = await userDoc.get();
-    //     if (gottenUserDoc.data() != null) {
-    //       var data = gottenUserDoc.data()!;
-    //       if (data['isAdmin'] > 0) {
-    //         throw 'Create user account';
-    //       }
-    //       setState(() {
-    //         _authData['email'] = data['email'];
-    //         _authData['password'] = data['password'];
-    //       });
-    //       try {
-    //         FirebaseAuth.instance.createUserWithEmailAndPassword(
-    //             email: 'foo@bar.com', password: 'password');
-    //       } catch (e) {
-    //         if (e is PlatformException) {
-    //           if (e.code != 'email-already-in-use') {
-    //             _switchAuthMode();
-    //           }
-    //         }
-    //       }
-    //     }
-    //     await Provider.of<Auth>(context, listen: false).authenticate(
-    //       _authData['email']!,
-    //       _authData['password']!,
-    //       _authData['name']!,
-    //       authMode == AuthMode.logIn,
-    //     );
-    //   } catch (e) {
-    //     _showErrorDialog(e.toString());
-    //   }
-    // }
 
     TextButton buildSwitchAuthModeButton(TextStyle linkTextStyle) {
       return TextButton(
         onPressed: context.read<Auth>().switchAuthMode,
         style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.transparent)),
-        child: Text(
-            '${authMode == AuthMode.logIn ? 'Create a new' : 'Already have'} account',
+        child: Text('${!isSignUp ? 'Create a new' : 'Already have'} account',
             style: linkTextStyle),
       );
     }
 
+    void submit() async {
+      final auth = context.read<Auth>();
+      //make sure the data is valid
+      if (!_formKey.currentState!.validate()) return;
+      //save the data after passing the condition successfully
+      context.read<Auth>().setIsLoading(true);
+      _formKey.currentState!.save();
+      try {
+        if (isSignUp && isExpert) {
+          var list =
+              (await FirebaseFirestore.instance.collection('experts').get())
+                  .docs
+                  .where((expert) =>
+                      expert.data()['email'] ==
+                      context.read<Auth>().authData['email'])
+                  .map((e) => e.data()['email'])
+                  .toList();
+          if (image == null) {
+            showErrorDialog('You should upload your degree!', context, true);
+          } else if (list.isNotEmpty) {
+            showErrorDialog('This email is already used!', context, true);
+          } else {
+            await auth.authenticate(context);
+          }
+        }
+        //SignUp user
+        else if (isSignUp && !isExpert) {
+          await auth.authenticate(context);
+        }
+        //Login Expert
+        else if (!isSignUp && isExpert) {
+          if (idController.text == '0000') {
+            await auth.authenticate(context);
+          } else {
+            int verificationValue = (await FirebaseFirestore.instance
+                    .collection('experts')
+                    .doc(idController.text)
+                    .get())
+                .data()!['verification'];
+
+            if (verificationValue == 0) {
+              showErrorDialog('Your account not processed yet', context, true);
+            } else if (verificationValue == 2) {
+              showErrorDialog('Your account is disabled!', context, true);
+            } else {
+              await auth.authenticate(context);
+            }
+          }
+        }
+        //Login user
+        else if (!isSignUp && !isExpert) {
+          await auth.authenticate(context);
+        }
+      } catch (e) {
+        showErrorDialog(e.toString(), context, true);
+      }
+      context.read<Auth>().setIsLoading(false);
+    }
+
     ElevatedButton buildSubmitButton() {
       return ElevatedButton(
-        onPressed: null,
-        style: ButtonStyle(
-            backgroundColor: MaterialStatePropertyAll(_buttonColor)),
+        onPressed: submit,
+        style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll(buttonColor)),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
-            authMode == AuthMode.logIn ? 'Log in' : 'Sign up',
+            !isSignUp ? 'Log in' : 'Sign up',
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),
           ),
@@ -261,17 +260,19 @@ class _AuthPageState extends State<AuthPage> {
                         image == null
                             ? Container()
                             : Container(
-                              margin: EdgeInsets.symmetric(horizontal: 5),
-                              decoration: BoxDecoration(
-                                border:Border.all(width: 3)
-                                ,borderRadius: BorderRadius.circular(15)
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(13),
-                                child: Image.file(image,
-                                fit:BoxFit.contain,),
-                              ),
-                            )
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                    border: Border.all(width: 3),
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(13),
+                                  child: Image.file(
+                                    image,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              )
                       ],
                     ),
                   buildDivider(),
@@ -356,7 +357,7 @@ class _AuthPageState extends State<AuthPage> {
               end: Alignment.bottomRight,
               colors: [
                 Colors.grey.shade300,
-                AuthPage.color,
+                themeColor,
               ]),
         ),
         alignment: Alignment.center,
@@ -398,7 +399,7 @@ class _AuthPageState extends State<AuthPage> {
                               context.read<Auth>().setRadioGroupValue(newId!);
                             },
                           );
-                        }).toList(),
+                        }),
                         ElevatedButton(
                             onPressed: () => Navigator.pop(ctx),
                             child: const Text('Close'))
@@ -410,21 +411,11 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  TextStyle buildSelectButtonTextStyle() {
-    return const TextStyle(fontSize: 16, color: Colors.black);
-  }
-
-  ButtonStyle buildSelectButtonStyle() {
-    return ElevatedButton.styleFrom(
-        side: BorderSide(width: 2, color: _buttonColor),
-        elevation: 3,
-        backgroundColor: Colors.blue);
-  }
-
   Field buildIdField(double screenWidth) {
     return Field(
         title: 'ID',
         isPassword: false,
+        controller: idController,
         inputType: TextInputType.number,
         validator: (value) {
           if (value != null && (value.isEmpty || value.length != 4)) {
@@ -432,8 +423,10 @@ class _AuthPageState extends State<AuthPage> {
           }
           return null;
         },
-        onSaved: (newValue) =>
-            setState(() => _authData['email'] = newValue!.trim()),
+        onSaved: (newValue) {
+          idController.text = newValue!;
+          context.read<Auth>().addAuthData('ID', newValue);
+        },
         width: screenWidth * 0.6);
   }
 
@@ -464,7 +457,7 @@ class _AuthPageState extends State<AuthPage> {
 
   AppBar buildAppBar() {
     return AppBar(
-      backgroundColor: AuthPage.color,
+      backgroundColor: themeColor,
       title: const Text('Ask Me'),
       centerTitle: true,
     );
@@ -472,6 +465,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildPhoneNumberField(double screenWidth) {
     return Field(
+        controller: TextEditingController(text: '0782561613'),
         inputType: TextInputType.phone,
         title: 'Phone number',
         hint: '07 #### ####',
@@ -488,35 +482,39 @@ class _AuthPageState extends State<AuthPage> {
           }
           return '07 #### ####';
         },
-        onSaved: (phoneNumber) =>
-            setState(() => _authData['phoneNumber'] = phoneNumber),
+        onSaved: (phoneNumber) => context
+            .read<Auth>()
+            .addAuthData('phoneNumber', phoneNumber!.trim()),
         width: screenWidth * 0.6);
   }
 
   Field buildLastNameField(double screenWidth) {
     return Field(
+        controller: TextEditingController(text: 'Doh'),
         title: 'Last Name',
         validator: (value) {
           return value!.isEmpty ? 'Enter your last name' : null;
         },
-        onSaved: (firstName) =>
-            setState(() => _authData['last name'] = firstName!.trim()),
+        onSaved: (lastName) =>
+            context.read<Auth>().addAuthData('last name', lastName!.trim()),
         width: screenWidth * 0.6);
   }
 
   Field buildFirstNameField(double screenWidth) {
     return Field(
+        controller: TextEditingController(text: 'John'),
         title: 'Frist Name',
         validator: (value) {
           return value!.isEmpty ? 'Enter your first name' : null;
         },
         onSaved: (firstName) =>
-            setState(() => _authData['first name'] = firstName!.trim()),
+            context.read<Auth>().addAuthData('first name', firstName!.trim()),
         width: screenWidth * 0.6);
   }
 
   Field buildConfirmPasswordField(double screenWidth) {
     return Field(
+        controller: TextEditingController(text: '123123'),
         isPassword: true,
         title: 'Confirm password',
         validator: (value) {
@@ -539,6 +537,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildEmailField(double screenWidth) {
     return Field(
+        controller: emailController,
         title: 'Email',
         isPassword: false,
         inputType: TextInputType.emailAddress,
@@ -546,30 +545,12 @@ class _AuthPageState extends State<AuthPage> {
           if (value != null && (value.isEmpty || !value.contains('@'))) {
             return 'Invalid email';
           }
+          emailController.text = value!;
           return null;
         },
         onSaved: (newValue) =>
-            setState(() => _authData['email'] = newValue!.trim()),
+            context.read<Auth>().addAuthData('email', newValue!.trim()),
         width: screenWidth * 0.6);
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-              title: const Text('An error occurred'),
-              content: Text(message),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    Provider.of<Auth>(context, listen: false)
-                        .setIsLoading(false);
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Okay'),
-                )
-              ],
-            ));
   }
 
   Widget buildDivider() {
