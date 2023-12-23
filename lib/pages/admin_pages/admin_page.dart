@@ -14,8 +14,14 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
-    return MyDrawer(listOfPages: [
-      MenuItem(title: 'Experts', icon: Icons.person_pin, child:  ExpertListPage()),
-    MenuItem(title: 'Reports', icon: Icons.report_outlined, child: const Reportspage())]);
+    return MyDrawer(
+      listOfPages: [
+      MenuItem(
+          title: 'الخبراء', icon: Icons.person_pin, child: ExpertListPage()),
+      MenuItem(
+          title: 'البلاغات',
+          icon: Icons.report_outlined,
+          child: const Reportspage()),
+    ]);
   }
 }

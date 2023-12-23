@@ -21,9 +21,9 @@ class _ExpertListPageState extends State<ExpertListPage> {
           decoration: const InputDecoration(
             hintText: 'Search by Expert ID',
           ),
-          onChanged:(value)=> setState(() {
-            _searchController.text = value;
-          }),
+          // onChanged:(value)=> setState(() {
+          //   _searchController.text = value;
+          // }),
         ),
       ),
       body: StreamBuilder(
@@ -32,9 +32,9 @@ class _ExpertListPageState extends State<ExpertListPage> {
           if (!snapshot.hasData) {
             return const Center(child:  CircularProgressIndicator());
           }
-
+      
           var experts = snapshot.data!.docs;
-
+      
           return ListView.builder(
             itemCount: experts.length,
             itemBuilder: (context, index) {

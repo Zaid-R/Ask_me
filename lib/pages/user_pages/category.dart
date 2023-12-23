@@ -86,7 +86,7 @@ class _CategoryState extends State<Category> {
         },
       ),
       floatingActionButton:readEmail()==null?null:  FloatingActionButton(
-        onPressed:()=> Navigator.push(context, MaterialPageRoute(builder: (_)=> QuestionFormPage(id:widget.id,))),
+        onPressed:()=> Navigator.push(context, MaterialPageRoute(builder: (_)=> QuestionFormPage(categoryId:widget.id,))),
         backgroundColor: themeColor,
         child: const Icon(Icons.add),
       ),

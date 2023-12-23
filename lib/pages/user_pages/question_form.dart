@@ -1,66 +1,51 @@
 import 'dart:io';
 import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/widgets/video_preview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:ask_me2/utils.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-class QuestionFormPage extends StatefulWidget {
-  final String id;
-  const QuestionFormPage({
+import '../../models/user_provider.dart';
+
+class QuestionFormPage extends StatelessWidget {
+  final String categoryId;
+  QuestionFormPage({
     super.key,
-    required this.id,
+    required this.categoryId,
   });
 
-  @override
-  _QuestionFormPageState createState() => _QuestionFormPageState();
-}
+  final TextEditingController _titleController = TextEditingController();
 
-class _QuestionFormPageState extends State<QuestionFormPage> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController bodyController = TextEditingController();
+  final TextEditingController _bodyController = TextEditingController();
 
-  List<Map<String, dynamic>> selectedImages = [];
-  int lastImageIndex = -1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
-        title: const Text('Ask a Question'),
+        title: const Text('كتابة سؤال جديد'),
         backgroundColor: const Color.fromRGBO(17, 138, 178, 1),
       ),
-      body: Padding(
+      body: Container(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+              const SizedBox(
+                height: 10,
               ),
+              _buildTextField(_titleController, 'العنوان'),
               const SizedBox(height: 16.0),
-              TextField(
-                controller: bodyController,
-                onChanged: (value){
-                  if(lastImageIndex!=-1&&bodyController.text.length-1<lastImageIndex){
-                    setState(() {
-                      bodyController.text+='*';
-                    });
-                    showErrorDialog('You have to remove last image to delete text', context, true);
-                  }
-                },
-                maxLines: 5,
-                decoration: const InputDecoration(labelText: 'Question Body'),
-              ),
+              _buildTextField(_bodyController, 'السؤال', maxLines: 5),
               const SizedBox(height: 16.0),
-              buildMyElevatedButton(() => saveQuestionToDatabase(), 'Submit'),
-              const SizedBox(height: 16.0),
-              buildMyElevatedButton(() => addImage(), 'Add Image'),
-              const SizedBox(height: 16.0),
-              buildImagePreview(),
+              _buildAnonymousCheckbox(),
+              _buildPreviewers(),
             ],
           ),
         ),
@@ -68,133 +53,248 @@ class _QuestionFormPageState extends State<QuestionFormPage> {
     );
   }
 
-  void addImage() async {
-    var pickedFile = await pickImage(ImageSource.gallery, context);
-    if (pickedFile != null) {
-      String name = (selectedImages.length + 1).toString();
-      setState(() {
-        bodyController.text += '*';
-        lastImageIndex = bodyController.text.length-1;
-        selectedImages.add({
-          'photo': File(pickedFile.path),
-          'name': name,
-          'index':bodyController.text.length-1
-        });
-        
-      });
-    }
+  TextField _buildTextField(TextEditingController controller, String lable,
+      {int maxLines = 1}) {
+    return TextField(
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.right,
+        controller: controller,
+        decoration: _buildTextFieldDecoration(lable),
+        maxLines: maxLines);
   }
 
-  Widget buildImagePreview() {
-    if (selectedImages.isNotEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Selected Images:', style: TextStyle(fontSize: 16.0)),
-          const SizedBox(height: 8.0),
-          SizedBox(
-            height: 200,
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 5,
-                mainAxisSpacing: 5,
-              ),
-              scrollDirection: Axis.vertical,
-              itemCount: selectedImages.length,
-              itemBuilder: (context, index) {
-                var image = selectedImages[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Stack(
-                        children: [
-                          Image.memory(
-                            (image['photo'] as File).readAsBytesSync(),
-                            width: 100.0,
-                            height: 80.0,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
-                              onPressed: () {
-                                // Remove the selected image
-                                setState(() {
-                                  bodyController.text = bodyController.text
-                                      .replaceRange(image['index']-1, image['index'], '');
-                                  selectedImages.removeAt(index);
-                                  lastImageIndex=selectedImages.isEmpty?-1:selectedImages.last['index'];
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        image['name'].toString(),
-                        style: const TextStyle(fontSize: 15),
-                      )
-                    ],
-                  ),
+  InputDecoration _buildTextFieldDecoration(String lable) {
+    return InputDecoration(
+        labelText: lable,
+        labelStyle: const TextStyle(color: Colors.black, fontSize: 18),
+        enabledBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey)),
+        focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: themeColor, width: 3)),
+        floatingLabelAlignment: FloatingLabelAlignment.center,
+        floatingLabelBehavior: FloatingLabelBehavior.always);
+  }
+
+  Widget _buildPreviewers() {
+    bool isUploadImageAllowed = !['1','2', '6'].contains(categoryId);
+    bool isUploadVideoAllowed = ['3', '2'].contains(categoryId);
+    bool isBothAllowed = isUploadImageAllowed && isUploadVideoAllowed;
+
+    void _saveQuestionToDatabase(BuildContext context,
+        {required bool isAnonymous,XFile? image, PlatformFile? video,}) async {
+      if (_titleController.text.trim().isEmpty) {
+        showErrorDialog('يجب كتابة عنوان مختصر يشير إلى محتوى السؤال', context);
+        return;
+      } else if (_bodyController.text.trim().isEmpty) {
+        showErrorDialog('لا يمكن أن يكون السؤال فارغ', context);
+        return;
+      }
+      // Create a new question document
+      Map<String, dynamic> questionData = {
+        'title': _titleController.text,
+        'body': _bodyController.text,
+        'date': DateTime.now().toString(),
+        'email': readEmail(),
+        'isAnswered': false,
+        'isAnonymous': isAnonymous
+      };
+
+      var categoryCollection = FirebaseFirestore.instance
+          .collection('questions')
+          .doc(categoryId)
+          .collection('questions');
+      String questionId =
+          ((await categoryCollection.get()).docs.length + 1).toString();
+      if (isUploadImageAllowed) {
+        if (image == null) {
+          questionData['image url'] = null;
+        } else {
+          final uploadTask = FirebaseStorage.instance
+              .ref()
+              .child('questions/$categoryId/$questionId/${image.name}')
+              .putFile(File(image.path));
+
+          questionData['image url'] =
+              await (await uploadTask.whenComplete(() {})).ref.getDownloadURL();
+        }
+      }
+
+      if (isUploadVideoAllowed) {
+        if (video == null) {
+          questionData['video url'] = null;
+        } else {
+          final uploadTask = FirebaseStorage.instance
+              .ref()
+              .child('questions/$categoryId/$questionId/${video.name}')
+              .putFile(File(video.path!));
+
+          questionData['video url'] =
+              await (await uploadTask.whenComplete(() {})).ref.getDownloadURL();
+        }
+      }
+      // Save the question to the database
+
+      categoryCollection.doc(questionId).set(questionData);
+
+      _titleController.clear();
+      _bodyController.clear();
+      context.read<UserProvider>().setVideo(null);
+      context.read<UserProvider>().setImage(null);
+
+    }
+
+    return Consumer<UserProvider>(builder: (context, provider, __) {
+            Widget buildButtons() {
+              ElevatedButton addVideoButton = buildMyElevatedButton(() async {
+                PlatformFile? selectedVideo = await selectFile(false, context);
+
+                if (selectedVideo != null && provider.video != null) {
+                  provider.setVideo(null);
+                }
+                if (selectedVideo != null) {
+                  provider.setVideo(selectedVideo);
+                }
+                if (selectedVideo != null && provider.image != null) {
+                  provider.setImage(null);
+                }
+              }, 'إضافة فيديو');
+
+              ElevatedButton addImageButton = buildMyElevatedButton(() async {
+                XFile? selectedImage = await pickImage(context);
+                if (selectedImage != null && provider.video != null) {
+                  provider.setVideo(null);
+                }
+                if (selectedImage != null) {
+                  provider.setImage(selectedImage);
+                }
+              }, 'إضافة صورة');
+
+              if (isBothAllowed) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [addVideoButton, addImageButton],
                 );
-              },
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Container();
-    }
+              } else if (isUploadImageAllowed) {
+                return addImageButton;
+              } else if(isUploadVideoAllowed){
+                return addVideoButton;
+              }
+              return Container();
+            }
+
+            Widget buildLogic() {
+              if (isBothAllowed) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildVideoPreview(provider.video, context),
+                    _buildImagePreview(provider.image, context)
+                  ],
+                );
+              } else if (isUploadVideoAllowed) {
+                return _buildVideoPreview(provider.video, context);
+              } else if(isUploadImageAllowed){
+                return _buildImagePreview(provider.image, context);
+              }
+              return Container();
+            }
+
+            return Column(
+              crossAxisAlignment: isBothAllowed
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.end,
+              children: [
+                buildButtons(),
+                const SizedBox(
+                  height: 10,
+                ),
+                buildLogic(),
+                buildMyElevatedButton(
+                    () => _saveQuestionToDatabase(context,isAnonymous: provider.isAnonymous,
+                        image: provider.image, video: provider.video),
+                    'انشر'),
+              ],
+            );
+          });
   }
 
-  void saveQuestionToDatabase() async {
-    // Create a new question document
-    Map<String, dynamic> questionData = {
-      'title': titleController.text,
-      'body': bodyController.text,
-      'date': DateTime.now().toString(),
-      'email': readEmail(),
-      'isAnswered': false,
-      'hasImages': selectedImages.isNotEmpty
-    };
-    var categoryCollection = FirebaseFirestore.instance
-        .collection('questions')
-        .doc(widget.id)
-        .collection('questions');
-    String questionId =
-        ((await categoryCollection.get()).docs.length + 1).toString();
-    // Save the question to the database
+  Widget _buildAnonymousCheckbox() {
+  return Consumer<UserProvider>(builder: (_,provider,__){
+    return Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      const Text('إخفاء الهوية'),
+      Checkbox(
+        value: provider.isAnonymous,
+        onChanged: (value) {
+            provider.setIsAnonymous(value ?? false);
+        },
+      )
+    ],
+  );
+  });
+  
+}
 
-    categoryCollection.doc(questionId).set(questionData);
-
-    uploadImages(questionId);
+  Widget _buildVideoPreview(PlatformFile? video, BuildContext context) {
+    return video != null
+        ? Container(
+            height: 160,
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                const VideoPreviewer(),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      // Remove the selected video
+                      context.read<UserProvider>().setVideo(null);
+                    },
+                  ),
+                ),
+              ],
+            ))
+        : Container();
   }
 
-  void uploadImages(String questionId) async {
-    final storage = FirebaseStorage.instance;
-
-    for (int i = 0; i < selectedImages.length; i++) {
-      var image = selectedImages[i];
-      final Reference storageRef = storage
-          .ref()
-          .child('questions/${widget.id}/$questionId/${image['name']}.jpg');
-
-      storageRef.putFile(image['photo'] as File);
-    }
-
-    // Clear the selected images after uploading
-    setState(() {
-      selectedImages.clear();
-    });
-
-    // Navigate back to the previous screen or perform other actions
-    Navigator.pop(context);
+  Widget _buildImagePreview(XFile? image, BuildContext context) {
+    return image != null
+        ? Container(
+            height: 160,
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(border: Border.all()),
+                  child: Image.memory(
+                    File(image.path).readAsBytesSync(),
+                    width: 150.0,
+                    height: 130.0,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      // Remove the selected image
+                      context.read<UserProvider>().setImage(null);
+                    },
+                  ),
+                ),
+              ],
+            ))
+        : Container();
   }
 }

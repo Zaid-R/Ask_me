@@ -1,5 +1,7 @@
+import 'package:ask_me2/loacalData.dart';
 import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/models/menu_item.dart';
+import 'package:ask_me2/pages/auth_page.dart';
 import 'package:ask_me2/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,8 +37,8 @@ class _MyDrawerState extends State<MyDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    int selectedPageId = context
-        .select<AdminProvider, int>((provider) => provider.drawerId);
+    int selectedPageId =
+        context.select<AdminProvider, int>((provider) => provider.drawerId);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: themeColor,
@@ -52,9 +54,35 @@ class _MyDrawerState extends State<MyDrawer> {
                 top: 15,
               ),
               child: SingleChildScrollView(
-                child: Column(
-                  children: pages,
-                ),
+                child: Column(children: [
+                  ...pages,
+                  buildMenuItemShape(() {
+                    removeData();
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AuthPage(),
+                        ));
+                  },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const Icon(
+                            Icons.logout_rounded,
+                            size: 30,
+                            color: Colors.black,
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            'تسجيل خروج',
+                            style: GoogleFonts.aBeeZee(
+                                fontWeight: FontWeight.w400, fontSize: 20),
+                          )
+                        ],
+                      ))
+                ]),
               ),
             ),
           ],
@@ -63,34 +91,39 @@ class _MyDrawerState extends State<MyDrawer> {
     );
   }
 
-  Widget buildMenuItem(MenuItem item) {
+  Container buildMenuItemShape(Function()? onTap, Widget child) {
     return Container(
-      color: Colors.black26,
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      padding: const EdgeInsets.all(10.0),
-      child: InkWell(
-        onTap: () {
-          context.read<AdminProvider>().setSelectedDrawerId(item.index!);
-          Navigator.pop(context);
-        },
-        child: Row(
-          
+        decoration: const BoxDecoration(
+            color: Colors.black26,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(20))),
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.all(10.0),
+        child: InkWell(onTap: onTap, child: child));
+  }
+
+  Widget buildMenuItem(MenuItem item) {
+    return buildMenuItemShape(() {
+      context.read<AdminProvider>().setSelectedDrawerId(item.index!);
+      Navigator.pop(context);
+    },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const SizedBox(width: 10,),
             Icon(
               item.icon,
               size: 30,
               color: Colors.black,
             ),
-            const SizedBox(width: 10,),
+            const SizedBox(
+              width: 10,
+            ),
             Text(
               item.title,
-              style: GoogleFonts.aBeeZee(fontWeight: FontWeight.w400,fontSize: 20),
+              style: GoogleFonts.aBeeZee(
+                  fontWeight: FontWeight.w400, fontSize: 20),
             ),
           ],
-        ),
-      ),
-    );
+        ));
   }
 
   Container buildDrawerHeader() {

@@ -22,28 +22,28 @@ class CategoriesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        leadingWidth: 170,
-        leading: readEmail() == null
-            ? ElevatedButton(
-                style: buildSelectButtonStyle().copyWith(
-                    shape: const MaterialStatePropertyAll(
-                        RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(8),
-                                bottomRight: Radius.circular(25),
-                                topRight: Radius.circular(25))))),
-                child: Text(
-                  'Log in/Sign up',
-                  style: buildSelectButtonTextStyle()
-                      .copyWith(color: Colors.black87),
+      floatingActionButton: readEmail() == null
+          ? ElevatedButton(
+              style: buildSelectButtonStyle().copyWith(
+                shape: const MaterialStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                  ),
                 ),
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AuthPage())),
-              )
-            : Container(),
+              ),
+              child: Text(
+                'تسجيل دخول',
+                style: buildSelectButtonTextStyle()
+                    .copyWith(color: Colors.black87),
+              ),
+              onPressed: () => Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const AuthPage())),
+            )
+          : Container(),
+      appBar:readEmail()==null? AppBar(
+        leadingWidth: 170,
         title: const Text(
-          'Categories',
+          'الأنواع',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20.0,
@@ -51,7 +51,7 @@ class CategoriesPage extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: themeColor,
-      ),
+      ):null,
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('specializations')

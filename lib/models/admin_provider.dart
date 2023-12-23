@@ -4,8 +4,6 @@ class AdminProvider extends ChangeNotifier{
   int drawerId=0;
   int verificationValue = 0;
 
-  
-
   void setSelectedDrawerId(int value){
     drawerId = value;
     notifyListeners();
