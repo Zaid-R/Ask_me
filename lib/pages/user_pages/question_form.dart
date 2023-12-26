@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:ask_me2/loacalData.dart';
 import 'package:ask_me2/widgets/video_preview.dart';
@@ -76,7 +78,7 @@ class QuestionFormPage extends StatelessWidget {
   }
 
   Widget _buildPreviewers() {
-    bool isUploadImageAllowed = !['1','2', '6'].contains(categoryId);
+    bool isUploadImageAllowed = !['1','2','6'].contains(categoryId);
     bool isUploadVideoAllowed = ['3', '2'].contains(categoryId);
     bool isBothAllowed = isUploadImageAllowed && isUploadVideoAllowed;
 
@@ -192,7 +194,7 @@ class QuestionFormPage extends StatelessWidget {
                   ],
                 );
               } else if (isUploadVideoAllowed) {
-                return _buildVideoPreview(provider.video, context);
+                return _buildVideoPreview(provider.video,context);
               } else if(isUploadImageAllowed){
                 return _buildImagePreview(provider.image, context);
               }

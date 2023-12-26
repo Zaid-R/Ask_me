@@ -123,14 +123,16 @@ class Auth extends ChangeNotifier {
             if (!isIdExist) {
               showErrorDialog('معرف المستخدم غير صحيح', context);
             } else if (isIdExist) {
+              Map<String, dynamic>? expertData = (await verifiedCollection.doc(authData['ID']).get())
+                          .data();
               bool isPasswordCorrect =
-                  (await verifiedCollection.doc(authData['ID']).get())
-                          .data()!['password'] ==
+                  expertData!['password'] ==
                       authData['password'];
               if (!isPasswordCorrect) {
                 showErrorDialog('كلمة السر غير صحيحة', context);
               } else if (isIdExist && isPasswordCorrect) {
                 writeID(authData['ID']);
+                writeName(expertData['last name']+expertData['first name']);
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -139,17 +141,19 @@ class Auth extends ChangeNotifier {
               }
             }
           } else {
-            bool isAdminPassword = (await FirebaseFirestore.instance
+            Map<String, dynamic>? adminData = (await FirebaseFirestore.instance
                         .collection('admin')
                         .doc('admin')
-                        .get())
-                    .data()!['password']
+                        .get()).data();
+            bool isAdminPassword = 
+                    adminData!['password']
                     .toString()
                     .compareTo(authData['password']) ==
                 0;
 
             if (isAdminPassword) {
               writeID(authData['ID']);
+              writeName(adminData['name']);
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -164,21 +168,22 @@ class Auth extends ChangeNotifier {
         var usersCollection = FirebaseFirestore.instance.collection('users');
         if (isLogin) {
           //1. check email
-          var user = (await usersCollection.get())
+          Map<String, dynamic>? userData = (await usersCollection.get())
               .docs
               .where(
                 (element) => element['email'] == authData['email'],
               )
               .firstOrNull
               ?.data();
-          if (user != null) {
-            bool isPasswordCorrect = user['password'] == authData['password'];
+          if (userData != null) {
+            bool isPasswordCorrect = userData['password'] == authData['password'];
             if (isPasswordCorrect) {
               writeEmial(authData['email']);
+              writeName(userData['last name']+userData['first name']);
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => UserPage(),
+                    builder: (_) => const UserPage(),
                   ));
             } else {
               showErrorDialog(

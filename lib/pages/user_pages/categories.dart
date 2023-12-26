@@ -7,16 +7,15 @@ import 'package:flutter/material.dart';
 import 'category.dart';
 
 class CategoriesPage extends StatelessWidget {
-  final List<Color> listOfItemsColors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
-    Colors.blueAccent,
-  ];
-
   CategoriesPage({super.key});
+  List<String> imagesPaths = [
+    'assets/religion.jpeg',
+    'assets/fixing.jpeg',
+    'assets/mechanic.jpeg',
+    'assets/health.jpeg',
+    'assets/tech.jpeg',
+    'assets/social.jpeg',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -40,18 +39,20 @@ class CategoriesPage extends StatelessWidget {
                   context, MaterialPageRoute(builder: (_) => const AuthPage())),
             )
           : Container(),
-      appBar:readEmail()==null? AppBar(
-        leadingWidth: 170,
-        title: const Text(
-          'الأنواع',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20.0,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: themeColor,
-      ):null,
+      appBar: readEmail() == null
+          ? AppBar(
+              leadingWidth: 170,
+              title: const Text(
+                'الأنواع',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
+              ),
+              centerTitle: true,
+              backgroundColor: themeColor,
+            )
+          : null,
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('specializations')
@@ -71,7 +72,7 @@ class CategoriesPage extends StatelessWidget {
                   crossAxisSpacing: 8.0,
                   mainAxisSpacing: 8.0,
                 ),
-                itemCount: listOfItemsColors.length,
+                itemCount: 6,
                 itemBuilder: (context, index) {
                   var title = titles[index].data()['name'];
                   return GestureDetector(
@@ -83,24 +84,41 @@ class CategoriesPage extends StatelessWidget {
                           builder: (context) => Category(
                             id: titles[index].id,
                             title: title,
-                            color: listOfItemsColors[index],
                           ),
                         ),
                       );
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: listOfItemsColors[index],
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(13.0),
+                        border: Border.all(),
+                        color: themeColor.withOpacity(0.3),
                       ),
-                      child: Center(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(),
+                                image: DecorationImage(
+                                    image: AssetImage(imagesPaths[index]),
+                                    fit: BoxFit.cover),
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                            ),
                           ),
-                        ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          
+                        ],
                       ),
                     ),
                   );

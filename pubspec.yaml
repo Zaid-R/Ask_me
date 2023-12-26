@@ -15,6 +15,7 @@ dependencies:
   firebase_auth: null
   firebase_core: null
   firebase_storage: null
+  cloud_functions:
   file_picker:
   video_player:
   flutter:
@@ -22,8 +23,11 @@ dependencies:
   get_storage: null
   google_fonts: null
   image_picker: null
+  advance_pdf_viewer2:
   intl: null
   provider: null
+  http: 
+  mailer: ^6.0.1
 
 dev_dependencies:
   flutter_lints: null
@@ -41,3 +45,11 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/health.jpeg
+    - assets/mechanic.jpeg
+    - assets/religion.jpeg
+    - assets/social.jpeg
+    - assets/tech.jpeg
+    - assets/fixing.jpeg
+  

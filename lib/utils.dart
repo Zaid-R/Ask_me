@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
+
 Widget circularIndicator = const Center(
   child: CircularProgressIndicator(),
 );

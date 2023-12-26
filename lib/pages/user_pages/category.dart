@@ -10,13 +10,11 @@ import 'question_form.dart';
 class Category extends StatefulWidget {
   final String id;
   final String title;
-  final Color color;
 
   const Category({
     super.key,
     required this.id,
     required this.title,
-    required this.color,
   });
 
   @override

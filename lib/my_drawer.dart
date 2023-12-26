@@ -3,6 +3,7 @@ import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/models/menu_item.dart';
 import 'package:ask_me2/pages/auth_page.dart';
 import 'package:ask_me2/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,7 @@ class _MyDrawerState extends State<MyDrawer> {
                         ));
                   },
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(
                             Icons.logout_rounded,
@@ -77,8 +78,7 @@ class _MyDrawerState extends State<MyDrawer> {
                           ),
                           Text(
                             'تسجيل خروج',
-                            style: GoogleFonts.aBeeZee(
-                                fontWeight: FontWeight.w400, fontSize: 20),
+                            style: arabicFontStyle,
                           )
                         ],
                       ))
@@ -90,6 +90,9 @@ class _MyDrawerState extends State<MyDrawer> {
       ),
     );
   }
+
+  TextStyle arabicFontStyle =
+      GoogleFonts.almarai(fontWeight: FontWeight.w400, fontSize: 20);
 
   Container buildMenuItemShape(Function()? onTap, Widget child) {
     return Container(
@@ -107,7 +110,7 @@ class _MyDrawerState extends State<MyDrawer> {
       Navigator.pop(context);
     },
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               item.icon,
@@ -119,46 +122,25 @@ class _MyDrawerState extends State<MyDrawer> {
             ),
             Text(
               item.title,
-              style: GoogleFonts.aBeeZee(
-                  fontWeight: FontWeight.w400, fontSize: 20),
-            ),
+              style: arabicFontStyle,
+            )
           ],
         ));
   }
 
-  Container buildDrawerHeader() {
+  Container buildDrawerHeader(){
+    
     return Container(
       color: themeColor,
       width: double.infinity,
       height: 200,
+      alignment: Alignment.center,
       padding: const EdgeInsets.only(top: 20.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            height: 70,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImage(
-                    'https://ew.com/thmb/T9bUy7ZyexKWzphd8Rs7zJG7qvk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/fight-club-2000-b85f7ccd3592499fb07d57e3d6a9f18f.jpg'),
-              ),
-            ),
-          ),
-          const Text(
-            "Rapid Tech",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
+      child: 
           Text(
-            "info@rapidtech.dev",
-            style: TextStyle(
-              color: Colors.grey[200],
-              fontSize: 14,
-            ),
+            readName(),
+            style: GoogleFonts.markaziText(fontWeight: FontWeight.w400, fontSize: 30),
           ),
-        ],
-      ),
     );
   }
 }

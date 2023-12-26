@@ -11,8 +11,10 @@ class UserPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MyDrawer(
       listOfPages: [
-        MenuItem(title: 'الأنواع', icon: Icons.category, child: CategoriesPage()),
-        MenuItem(title: 'حسابي', icon: Icons.person, child: const ProfilePage()),
+        MenuItem(
+            title: 'الأنواع', icon: Icons.category, child: CategoriesPage()),
+        MenuItem(
+            title: 'حسابي', icon: Icons.person, child: const ProfilePage()),
       ],
     );
   }

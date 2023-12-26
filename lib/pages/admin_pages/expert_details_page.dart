@@ -10,10 +10,10 @@ import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/utils.dart';
 
 class ExpertDetailsPage extends StatefulWidget {
-  final String expertId;
+  final String? expertId;
   const ExpertDetailsPage({
     super.key,
-    required this.expertId,
+    this.expertId,
   });
 
   @override

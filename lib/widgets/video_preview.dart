@@ -1,7 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -9,8 +8,11 @@ import 'package:video_player/video_player.dart';
 import '../models/user_provider.dart';
 
 class VideoPreviewer extends StatefulWidget {
-
-  const VideoPreviewer({super.key,});
+  final String? url;
+  const VideoPreviewer({
+    super.key,
+     this.url,
+  });
 
   @override
   _VideoPreviewerState createState() => _VideoPreviewerState();
@@ -22,14 +24,19 @@ class _VideoPreviewerState extends State<VideoPreviewer> {
   @override
   void initState() {
     super.initState();
-     final userProvider = context.read<UserProvider>();
-    controller = VideoPlayerController.file(File(userProvider.video?.path ?? ''));
-   initializationFuture = controller.initialize();
+    if (widget.url==null) {
+      final userProvider = context.read<UserProvider>();
+      controller =
+          VideoPlayerController.file(File(userProvider.video?.path ?? ''));
+    } else {
+      controller = VideoPlayerController.networkUrl(Uri.parse(widget.url!));
+    }
+
+    initializationFuture = controller.initialize();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.select<UserProvider,PlatformFile?>((provider)=>provider.video);
     return Center(
       child: FutureBuilder(
           future: initializationFuture,
@@ -48,9 +55,7 @@ class _VideoPreviewerState extends State<VideoPreviewer> {
                 ),
               );
             } else {
-              return const Center(
-                child: CircularProgressIndicator()
-              );
+              return const Center(child: CircularProgressIndicator());
             }
           }),
     );

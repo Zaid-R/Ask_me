@@ -55,5 +55,19 @@
       });
     });
   </script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-analytics.js"></script>
+  <script>
+    var firebaseConfig = {
+    apiKey: "AIzaSyD3kd5vMAOxwPdQiU1pTpoWrGZr9ZzuU-g",
+    projectId: "flutter-web-app-edc4a",
+    storageBucket: "flutter-web-app-edc4a.appspot.com",
+    appId: "1:593342140687:web:6f2d86d0b9aa628bbd6e7a",
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
 </body>
 </html>

@@ -221,6 +221,7 @@ class _AuthPageState extends State<AuthPage> {
           await auth.authenticate(context);
         }
       } catch (e) {
+        context.read<Auth>().setIsLoading(false);
         showErrorDialog(
           e.toString(),
           context,
@@ -461,10 +462,10 @@ class _AuthPageState extends State<AuthPage> {
             .toList(),
       ),
       onPressed: () async {
-        var collection = await FirebaseFirestore.instance
+        QuerySnapshot<Map<String, dynamic>> collection = await FirebaseFirestore.instance
             .collection('specializations')
             .get();
-        var docs = collection.docs;
+        var specializations = collection.docs;
         // ignore: use_build_context_synchronously
         showDialog(
             context: ctx,
@@ -473,7 +474,7 @@ class _AuthPageState extends State<AuthPage> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ...docs.map((doc) {
+                        ...specializations.map((doc) {
                           var specialization = doc.data();
                           return RadioListTile(
                             activeColor: Colors.blue,
@@ -504,7 +505,7 @@ class _AuthPageState extends State<AuthPage> {
         controller: idController,
         inputType: TextInputType.number,
         validator: (value) {
-          if (value != null && (value.isEmpty || value.length != 4)) {
+          if (value != null && (value.isEmpty /*|| value.length != 4*/)) {
             return 'معرف المسختدم غير صحيح';
           }
           return null;
