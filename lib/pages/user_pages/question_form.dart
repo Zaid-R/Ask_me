@@ -78,12 +78,16 @@ class QuestionFormPage extends StatelessWidget {
   }
 
   Widget _buildPreviewers() {
-    bool isUploadImageAllowed = !['1','2','6'].contains(categoryId);
+    bool isUploadImageAllowed = !['1', '2', '6'].contains(categoryId);
     bool isUploadVideoAllowed = ['3', '2'].contains(categoryId);
     bool isBothAllowed = isUploadImageAllowed && isUploadVideoAllowed;
 
-    void _saveQuestionToDatabase(BuildContext context,
-        {required bool isAnonymous,XFile? image, PlatformFile? video,}) async {
+    void _saveQuestionToDatabase(
+      BuildContext context, {
+      required bool isAnonymous,
+      XFile? image,
+      PlatformFile? video,
+    }) async {
       if (_titleController.text.trim().isEmpty) {
         showErrorDialog('يجب كتابة عنوان مختصر يشير إلى محتوى السؤال', context);
         return;
@@ -97,8 +101,9 @@ class QuestionFormPage extends StatelessWidget {
         'body': _bodyController.text,
         'date': DateTime.now().toString(),
         'email': readEmail(),
-        'isAnswered': false,
-        'isAnonymous': isAnonymous
+        'answerId':null,
+        'isAnonymous': isAnonymous,
+        'reportId': null,
       };
 
       var categoryCollection = FirebaseFirestore.instance
@@ -142,101 +147,100 @@ class QuestionFormPage extends StatelessWidget {
       _bodyController.clear();
       context.read<UserProvider>().setVideo(null);
       context.read<UserProvider>().setImage(null);
-
     }
 
     return Consumer<UserProvider>(builder: (context, provider, __) {
-            Widget buildButtons() {
-              ElevatedButton addVideoButton = buildMyElevatedButton(() async {
-                PlatformFile? selectedVideo = await selectFile(false, context);
+      Widget buildButtons() {
+        ElevatedButton addVideoButton = buildMyElevatedButton(() async {
+          PlatformFile? selectedVideo = await selectFile(false, context);
 
-                if (selectedVideo != null && provider.video != null) {
-                  provider.setVideo(null);
-                }
-                if (selectedVideo != null) {
-                  provider.setVideo(selectedVideo);
-                }
-                if (selectedVideo != null && provider.image != null) {
-                  provider.setImage(null);
-                }
-              }, 'إضافة فيديو');
+          if (selectedVideo != null && provider.video != null) {
+            provider.setVideo(null);
+          }
+          if (selectedVideo != null) {
+            provider.setVideo(selectedVideo);
+          }
+          if (selectedVideo != null && provider.image != null) {
+            provider.setImage(null);
+          }
+        }, 'إضافة فيديو');
 
-              ElevatedButton addImageButton = buildMyElevatedButton(() async {
-                XFile? selectedImage = await pickImage(context);
-                if (selectedImage != null && provider.video != null) {
-                  provider.setVideo(null);
-                }
-                if (selectedImage != null) {
-                  provider.setImage(selectedImage);
-                }
-              }, 'إضافة صورة');
+        ElevatedButton addImageButton = buildMyElevatedButton(() async {
+          XFile? selectedImage = await pickImage(context);
+          if (selectedImage != null && provider.video != null) {
+            provider.setVideo(null);
+          }
+          if (selectedImage != null) {
+            provider.setImage(selectedImage);
+          }
+        }, 'إضافة صورة');
 
-              if (isBothAllowed) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [addVideoButton, addImageButton],
-                );
-              } else if (isUploadImageAllowed) {
-                return addImageButton;
-              } else if(isUploadVideoAllowed){
-                return addVideoButton;
-              }
-              return Container();
-            }
+        if (isBothAllowed) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [addVideoButton, addImageButton],
+          );
+        } else if (isUploadImageAllowed) {
+          return addImageButton;
+        } else if (isUploadVideoAllowed) {
+          return addVideoButton;
+        }
+        return Container();
+      }
 
-            Widget buildLogic() {
-              if (isBothAllowed) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildVideoPreview(provider.video, context),
-                    _buildImagePreview(provider.image, context)
-                  ],
-                );
-              } else if (isUploadVideoAllowed) {
-                return _buildVideoPreview(provider.video,context);
-              } else if(isUploadImageAllowed){
-                return _buildImagePreview(provider.image, context);
-              }
-              return Container();
-            }
+      Widget buildLogic() {
+        if (isBothAllowed) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildVideoPreview(provider.video, context),
+              _buildImagePreview(provider.image, context)
+            ],
+          );
+        } else if (isUploadVideoAllowed) {
+          return _buildVideoPreview(provider.video, context);
+        } else if (isUploadImageAllowed) {
+          return _buildImagePreview(provider.image, context);
+        }
+        return Container();
+      }
 
-            return Column(
-              crossAxisAlignment: isBothAllowed
-                  ? CrossAxisAlignment.center
-                  : CrossAxisAlignment.end,
-              children: [
-                buildButtons(),
-                const SizedBox(
-                  height: 10,
-                ),
-                buildLogic(),
-                buildMyElevatedButton(
-                    () => _saveQuestionToDatabase(context,isAnonymous: provider.isAnonymous,
-                        image: provider.image, video: provider.video),
-                    'انشر'),
-              ],
-            );
-          });
+      return Column(
+        crossAxisAlignment:
+            isBothAllowed ? CrossAxisAlignment.center : CrossAxisAlignment.end,
+        children: [
+          buildButtons(),
+          const SizedBox(
+            height: 10,
+          ),
+          buildLogic(),
+          buildMyElevatedButton(
+              () => _saveQuestionToDatabase(context,
+                  isAnonymous: provider.isAnonymous,
+                  image: provider.image,
+                  video: provider.video),
+              'انشر'),
+        ],
+      );
+    });
   }
 
   Widget _buildAnonymousCheckbox() {
-  return Consumer<UserProvider>(builder: (_,provider,__){
-    return Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      const Text('إخفاء الهوية'),
-      Checkbox(
-        value: provider.isAnonymous,
-        onChanged: (value) {
-            provider.setIsAnonymous(value ?? false);
-        },
-      )
-    ],
-  );
-  });
-  
-}
+    return Consumer<UserProvider>(builder: (_, provider, __) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const Text('إخفاء الهوية'),
+          Checkbox(
+            value: provider.isAnonymous,
+            onChanged: (value) {
+              provider.setIsAnonymous(value ?? false);
+            },
+          )
+        ],
+      );
+    });
+  }
 
   Widget _buildVideoPreview(PlatformFile? video, BuildContext context) {
     return video != null

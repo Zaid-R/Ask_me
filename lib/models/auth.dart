@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:math';
+
 import 'package:ask_me2/loacalData.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
@@ -59,7 +61,8 @@ class Auth extends ChangeNotifier {
     isLoading = val;
     notifyListeners();
   }
-
+  
+  //TODO: why you make return type bool or null ??
   Future<bool?> authenticate(BuildContext context) async {
     try {
       bool isLogin = authMode == AuthMode.logIn;
@@ -97,6 +100,8 @@ class Auth extends ChangeNotifier {
                   .ref
                   .getDownloadURL());
 
+          addAuthData('isSuspended', false);
+
           await expertsCollection
               .doc('new comers')
               .collection('experts')
@@ -115,24 +120,24 @@ class Auth extends ChangeNotifier {
               expertsCollection.doc('verified').collection('experts');
           bool isAdmin = authData['ID'] == '0000';
           if (!isAdmin) {
-            bool isIdExist = (await verifiedCollection.get())
-                .docs
-                .where((element) => element.id == authData['ID'])
-                .isNotEmpty;
+            Map<String,dynamic>? expert = (await verifiedCollection.doc(authData['ID']).get()).data();
+            bool isIdExist = expert!=null;
 
             if (!isIdExist) {
               showErrorDialog('معرف المستخدم غير صحيح', context);
             } else if (isIdExist) {
-              Map<String, dynamic>? expertData = (await verifiedCollection.doc(authData['ID']).get())
-                          .data();
+              if(expert['isSuspended']){
+                showErrorDialog('تم إيقاف حسابك', context);
+                return false;
+              }
               bool isPasswordCorrect =
-                  expertData!['password'] ==
+                  expert['password'] ==
                       authData['password'];
               if (!isPasswordCorrect) {
                 showErrorDialog('كلمة السر غير صحيحة', context);
               } else if (isIdExist && isPasswordCorrect) {
                 writeID(authData['ID']);
-                writeName(expertData['last name']+expertData['first name']);
+                writeName(expert['last name']+expert['first name']);
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(

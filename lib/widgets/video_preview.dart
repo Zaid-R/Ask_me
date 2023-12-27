@@ -11,7 +11,7 @@ class VideoPreviewer extends StatefulWidget {
   final String? url;
   const VideoPreviewer({
     super.key,
-     this.url,
+    this.url,
   });
 
   @override
@@ -24,7 +24,7 @@ class _VideoPreviewerState extends State<VideoPreviewer> {
   @override
   void initState() {
     super.initState();
-    if (widget.url==null) {
+    if (widget.url == null) {
       final userProvider = context.read<UserProvider>();
       controller =
           VideoPlayerController.file(File(userProvider.video?.path ?? ''));
@@ -45,13 +45,27 @@ class _VideoPreviewerState extends State<VideoPreviewer> {
                 controller.value.isInitialized) {
               return InkWell(
                 onTap: () {
+                  context.read<UserProvider>().setIsPaused(controller.value.isPlaying);
                   controller.value.isPlaying
                       ? controller.pause()
                       : controller.play();
                 },
-                child: AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
-                  child: VideoPlayer(controller),
+                child: Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: controller.value.aspectRatio,
+                      child: VideoPlayer(controller),
+                    ),
+                    Consumer<UserProvider>(
+                      builder: (_, provider, __) {
+                        return Positioned(
+                          child: Icon(provider.isPaused
+                              ? Icons.play_arrow
+                              : Icons.pause,color: Colors.amberAccent,size: 30,),
+                        );
+                      },
+                    )
+                  ],
                 ),
               );
             } else {

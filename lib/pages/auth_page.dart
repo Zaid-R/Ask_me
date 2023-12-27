@@ -24,8 +24,8 @@ class _AuthPageState extends State<AuthPage> {
       backgroundColor: MaterialStatePropertyAll(buttonColor.withRed(200)));
   final idController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey();
-  final emailController = TextEditingController(text: 'zaid.rjab1@gmail.com');
-  final _passwordController = TextEditingController(text: '12312@');
+  final emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   var radioValue = 1;
 
   Widget buildLabelBackground(Widget child) => Container(
@@ -563,7 +563,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildPhoneNumberField(double screenWidth) {
     return Field(
-        controller: TextEditingController(text: '0782561613'),
+        controller: TextEditingController(),
         inputType: TextInputType.phone,
         title: 'رقم الهاتف',
         hint: '07 #### ####',
@@ -588,7 +588,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildLastNameField(double screenWidth) {
     return Field(
-        controller: TextEditingController(text: 'Doh'),
+        controller: TextEditingController(),
         title: 'اسم العائلة',
         validator: (value) {
           return value!.isEmpty ? 'ادخل اسم العائلة' : null;
@@ -600,7 +600,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildFirstNameField(double screenWidth) {
     return Field(
-        controller: TextEditingController(text: 'John'),
+        controller: TextEditingController(),
         title: 'الاسم الأول',
         validator: (value) {
           return value!.isEmpty ? 'ادخل اسمك الأول' : null;
@@ -612,7 +612,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildConfirmPasswordField(double screenWidth) {
     return Field(
-        controller: TextEditingController(text: '12312@'),
+        controller: TextEditingController(),
         isPassword: true,
         title: 'تأكيد كلمة السر',
         validator: (value) {

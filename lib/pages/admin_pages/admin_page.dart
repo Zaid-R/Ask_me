@@ -6,6 +6,8 @@ import 'package:ask_me2/my_drawer.dart';
 import 'package:ask_me2/pages/admin_pages/experts_page.dart';
 import 'package:ask_me2/pages/admin_pages/reports_page.dart';
 
+import '../expert_pages/questions.dart';
+
 class AdminPage extends StatefulWidget {
   const AdminPage( {
     super.key,
@@ -21,6 +23,10 @@ class _AdminPageState extends State<AdminPage> {
     return MyDrawer(listOfPages: [
       MenuItem(
           title: 'الخبراء', icon: Icons.person_pin, child: ExpertListPage()),
+      MenuItem(
+            title: 'الأسئلة',
+            icon: Icons.question_answer_outlined,
+            child: const QuestionList()),
       MenuItem(
           title: 'البلاغات',
           icon: Icons.report_outlined,

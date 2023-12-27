@@ -18,6 +18,7 @@ dependencies:
   cloud_functions:
   file_picker:
   video_player:
+  rxdart:
   flutter:
     sdk: flutter
   get_storage: null

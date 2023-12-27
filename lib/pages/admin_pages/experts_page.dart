@@ -1,8 +1,7 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, must_be_immutable
 
 import 'package:ask_me2/models/admin_provider.dart';
-import 'package:ask_me2/pages/admin_pages/expert_details_page.dart';
-import 'package:ask_me2/pages/admin_pages/new_comer.dart';
+import 'package:ask_me2/pages/admin_pages/expert_details.dart';
 import 'package:ask_me2/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,16 +43,16 @@ class _ExpertListPageState extends State<ExpertListPage>
         ),
         body: TabBarView(
           controller: tabController,
-          children: [
-            NewComers(), // Your first page widget
-            Verified(), // Your second page widget
+          children: const [
+            NewComerList(), // Your first page widget
+            VerifiedList(), // Your second page widget
           ],
         ));
   }
 }
 
-class NewComers extends StatelessWidget {
-  NewComers({super.key});
+class NewComerList extends StatelessWidget {
+  const NewComerList({super.key});
   @override
   Widget build(BuildContext context) {
     bool isLoading =
@@ -71,66 +70,69 @@ class NewComers extends StatelessWidget {
 
         var experts = snapshot.data!.docs;
 
-        return ListView.builder(
-          itemCount: experts.length,
-          itemBuilder: (context, index) {
-            var expert = experts[index];
-            var data = expert.data();
-            return Card(
-              color: Colors.indigo[200],
-              child: ListTile(
-                title: Text(
-                  '${data['first name']} ${data['last name']}',
-                  textAlign: TextAlign.right,
-                ),
-                onTap: isLoading
-                    ? null
-                    : () async {
-                        context.read<AdminProvider>().setIsLoading(true);
-                        String specialization =
-                            await getSpecialization(expert.id[0]);
-                        context.read<AdminProvider>().setIsLoading(false);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => NewComer(
-                                specialization: specialization,
-                                data: data,
-                                expertId: expert.id),
-                          ),
-                        );
-                      },
-              ),
-            );
-          },
-        );
+        return experts.isEmpty
+            ? buildEmptyMessage('لا يوجد خبراء جدد')
+            : ListView.builder(
+                itemCount: experts.length,
+                itemBuilder: (context, index) {
+                  var expert = experts[index];
+                  var data = expert.data();
+                  return Card(
+                    color: Colors.indigo[200],
+                    child: ListTile(
+                      title: Text(
+                        '${data['first name']} ${data['last name']}',
+                        textAlign: TextAlign.right,
+                      ),
+                      onTap: isLoading
+                          ? null
+                          : () async {
+                              context.read<AdminProvider>().setIsLoading(true);
+                              String specialization =
+                                  await _getSpecialization(expert.id[0]);
+                              context.read<AdminProvider>().setIsLoading(false);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ExpertDetailsPage(
+                                      specialization: specialization,
+                                      isVerified: false,
+                                      expertId: expert.id),
+                                ),
+                              );
+                            },
+                    ),
+                  );
+                },
+              );
       },
     );
   }
-
-  Future<String> getSpecialization(String specId) async {
-    return (await FirebaseFirestore.instance
-            .collection('specializations')
-            .doc(specId)
-            .get())
-        .data()!['name'];
-  }
 }
 
-class Verified extends StatelessWidget {
-  Verified({super.key});
-  final TextEditingController _searchController = TextEditingController();
+Future<String> _getSpecialization(String specId) async {
+  return (await FirebaseFirestore.instance
+          .collection('specializations')
+          .doc(specId)
+          .get())
+      .data()!['name'];
+}
+
+class VerifiedList extends StatelessWidget {
+  const VerifiedList({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: TextField(
           textAlign: TextAlign.right,
-          controller: _searchController,
+          // controller: _searchController,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
             hintText: 'ابحث باستخدام معرف المستخدم',
           ),
+          onChanged: context.read<AdminProvider>().setSearchQuery,
         ),
       ),
       body: StreamBuilder(
@@ -150,32 +152,41 @@ class Verified extends StatelessWidget {
             itemCount: experts.length,
             itemBuilder: (context, index) {
               var expert = experts[index];
-              if (expert.id.contains(_searchController.text)) {
-                var data = expert.data();
-                return Card(
-                  color: Colors.green[200],
-                  child: ListTile(
-                    title: Text(
-                      '${data['first name']} ${data['last name']}',
-                      textAlign: TextAlign.right,
-                    ),
-                    onTap: () {
-                      context.read<AdminProvider>().setVerificationValue(
-                          int.parse(data['verification'].toString()));
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExpertDetailsPage(
-                            expertId: expert.id,
-                          ),
+              // Check if the search query is empty or if the expert ID contains the search query
+              return Consumer<AdminProvider>(
+                builder: (_, provider, __) {
+                  if (provider.searchQuery.isEmpty ||
+                      expert.id.contains(provider.searchQuery)) {
+                    Map<String, dynamic> data = expert.data();
+                    return Card(
+                      color: data['isSuspended']
+                          ? Colors.red[200]
+                          : Colors.green[200],
+                      child: ListTile(
+                        title: Text(
+                          '${data['first name']} ${data['last name']}',
+                          textAlign: TextAlign.right,
                         ),
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return Container(); // Skip if it doesn't match the search
-              }
+                        onTap: () async {
+                          String specialization =
+                              await _getSpecialization(expert.id[0]);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ExpertDetailsPage(
+                                    specialization: specialization,
+                                    isVerified: true,
+                                    expertId: expert.id)),
+                          );
+                        },
+                      ),
+                    );
+                  } else {
+                    return buildEmptyMessage(
+                        'لا يوجد خبير بهذا المعرف'); // Skip if it doesn't match the search
+                  }
+                },
+              );
             },
           );
         },
