@@ -4,7 +4,7 @@ import 'package:ask_me2/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'question_details.dart';
+import '../expert_pages/detailed_question.dart';
 import 'question_form.dart';
 
 class Category extends StatefulWidget {
@@ -42,31 +42,32 @@ class _CategoryState extends State<Category> {
             .doc(widget.id)
             .collection('questions')
             .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        builder: (context, snapshots) {
+          if (snapshots.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+          if (snapshots.hasError) {
+            return Center(child: Text('Error: ${snapshots.error}'));
           }
 
-          List<QueryDocumentSnapshot> questions = snapshot.data!.docs;
+          var questions = snapshots.data!.docs;
 
           return ListView.builder(
             itemCount: questions.length,
             itemBuilder: (context, index) {
-              var question = questions[index].data() as Map<String, dynamic>;
+              Map<String, dynamic> question = questions[index].data();
 
               // Only display questions that are answered
-              if (question['isAnswered'] == true) {
+              if (question['answerId'] != null) {
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuestionDetailsPage(
-                          data:question
+                        builder: (context) => DetailedQuestionPage(
+                          questionId:questions[index].id,
+                          catId:widget.id
                         ),
                       ),
                     );

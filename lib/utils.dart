@@ -11,17 +11,18 @@ import 'pages/expert_pages/detailed_question.dart';
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
 String categoryId = readID()![0];
+const String adminId = '0000';
 
 Widget circularIndicator = const Center(
   child: CircularProgressIndicator(),
 );
 
-ButtonStyle buildButtonStyle(bool condition){
+ButtonStyle buildButtonStyle(bool condition) {
   return ButtonStyle(
-          elevation: const MaterialStatePropertyAll(10),
-          backgroundColor: MaterialStatePropertyAll(
-              condition ? Colors.green[400] : Colors.red[600]),
-        );
+    elevation: const MaterialStatePropertyAll(10),
+    backgroundColor: MaterialStatePropertyAll(
+        condition ? Colors.green[400] : Colors.red[600]),
+  );
 }
 
 Center buildEmptyMessage(String text) {
@@ -43,9 +44,10 @@ Future<XFile?> pickImage(BuildContext context) async {
 }
 
 Card buildQuestionTitleCard(Map<String, dynamic> question, BuildContext context,
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs, int index,{Color? color}) {
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs, int index,
+    {Color? color}) {
   return Card(
-    color: color??Colors.blue[100],
+    color: color ?? Colors.blue[100],
     child: ListTile(
       title: Text(
         question['title'],
@@ -56,8 +58,10 @@ Card buildQuestionTitleCard(Map<String, dynamic> question, BuildContext context,
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                DetailedQuestionPage(questionId: docs[index].id),
+            builder: (context) => DetailedQuestionPage(
+              questionId: docs[index].id,
+              catId: null,
+            ),
           ),
         );
       },

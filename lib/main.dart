@@ -6,6 +6,7 @@ import 'package:ask_me2/models/auth.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
+import 'package:ask_me2/pages/user_pages/home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,11 @@ Future<void> main() async {
     ),
   ]);
 
-  // writeID('0000');
-  // writeName('صهيب أبو قرع');
+  // writeEmial('zaid.rjab1@gmail.com');
+  // writeName('زيد رحب');
+
+  writeID(adminId);
+  writeName('صهيب أبو قرع');
   runApp(const MyApp());
 }
 
@@ -66,8 +70,8 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         home: readEmail() != null
-            ? CategoriesPage()
-            : readID() == '0000'
+            ? const UserPage()
+            : readID() == adminId
                 ? const AdminPage()
                 : readID() != null
                     ? const ExpertPage()

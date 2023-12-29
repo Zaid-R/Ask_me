@@ -10,9 +10,11 @@ import '../../widgets/video_preview.dart';
 
 class DetailedQuestionPage extends StatefulWidget {
   final String questionId;
+  final String? catId;
   const DetailedQuestionPage({
     super.key,
     required this.questionId,
+    required this.catId,
   });
 
   @override
@@ -35,7 +37,7 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
       body: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection('questions')
-              .doc(categoryId)
+              .doc(widget.catId??categoryId)
               .collection('questions')
               .doc(widget.questionId)
               .snapshots(),
@@ -106,6 +108,7 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
                           ],
                         ),
                         color: Colors.grey[300]!),
+                    //Answer button and report button
                     if (question['answerId'] == null&&question['reportId']==null)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -126,9 +129,9 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
                     // Answer Text
                     if (question['answerId'] != null)
                       buildResponse(
-                          docId: categoryId + snapshot.data!.id,
+                          docId: question['answerId'],
                           isAnswer: true),
-                    if (question['reportId'] != null)
+                    if (question['reportId'] != null&&readID()!=null)
                       buildResponse(
                           docId: categoryId + snapshot.data!.id,
                           isAnswer: false)

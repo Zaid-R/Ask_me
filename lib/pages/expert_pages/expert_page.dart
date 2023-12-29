@@ -15,7 +15,7 @@ class ExpertPage extends StatelessWidget {
         MenuItem(
             title: 'الأسئلة',
             icon: Icons.question_answer_outlined,
-            child: const QuestionList()),
+            child:  QuestionList()),
         MenuItem(
             title: 'إجاباتي',
             icon: Icons.lightbulb_outlined,

@@ -26,7 +26,7 @@ class _AdminPageState extends State<AdminPage> {
       MenuItem(
             title: 'الأسئلة',
             icon: Icons.question_answer_outlined,
-            child: const QuestionList()),
+            child:  QuestionList()),
       MenuItem(
           title: 'البلاغات',
           icon: Icons.report_outlined,
