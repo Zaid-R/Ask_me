@@ -96,9 +96,9 @@ class _QuestionListState extends State<QuestionList> {
 
               List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                   snapshot.data!.docs.where((question) {
-                bool isAnswered = question['answerId'] == null;
-                bool isReported = question['reportId'] == null;
-                bool expertCondition = isAnswered && isReported;
+                bool isAnswered = question['answerId'] != null;
+                bool isReported = question['reportId'] != null;
+                bool expertCondition = isAnswered && !isReported;
 
                 bool userCondition =
                     !isReported && !question['isHidden'] && isAnswered;
@@ -122,7 +122,8 @@ class _QuestionListState extends State<QuestionList> {
                                 ? null
                                 : question['isHidden']
                                     ? hiddenQuestionColor
-                                    : null);
+                                    : null,
+                                    catId:widget.categoryId ?? expertCategory );
                       },
                     );
             });
