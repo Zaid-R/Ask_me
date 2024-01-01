@@ -39,8 +39,6 @@ class ExpertDetailsPage extends StatelessWidget {
         backgroundColor: Colors.blue[50],
         appBar: AppBar(
           title: const Text('بيانات الخبير'),
-          backgroundColor: themeColor,
-          centerTitle: true,
         ),
         body: StreamBuilder(
             stream: FirebaseFirestore.instance
@@ -301,7 +299,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Degree PDF'),
+        title: const Text('الدرجة العلمية'),
       ),
       body: FutureBuilder(
         future: _loadPDF(),

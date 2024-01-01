@@ -1,4 +1,4 @@
-import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +19,7 @@ class AnswerList extends StatelessWidget {
           return StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('questions')
-                  .doc(categoryId)
+                  .doc(expertCategory)
                   .collection('questions')
                   .snapshots(),
               builder: (context, questions) {
@@ -27,24 +27,31 @@ class AnswerList extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                List<String> answerIds = answers.data!.docs
+                    .where((answer) => answer.get('expertId') == readID())
+                    .map((e) => e.id)
+                    .toList();
+
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
-                        .where((e) =>
-                            e['answerId'] != null &&
-                            answers.data!.docs
-                                    .firstWhere((element) =>
-                                        element.id == e['answerId'])
-                                    .data()['expertId'] ==
-                                readID())
+                        .where((question) =>
+                            question['answerId'] != null &&answerIds.contains(question['answerId']))
                         .toList();
 
-                return docs.isEmpty?buildEmptyMessage('لا يوجد لديك إجابات'): ListView.builder(
-                    itemCount: docs.length,
-                    itemBuilder: (context, index) {
-                      Map<String, dynamic> question = docs[index].data();
-                      return buildQuestionTitleCard(
-                          question, context, docs, index);
-                    });
+                return docs.isEmpty
+                    ? buildEmptyMessage('لا يوجد لديك إجابات')
+                    : ListView.builder(
+                        itemCount: docs.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> question = docs[index].data();
+                          return buildQuestionTitleCard(
+                              title: question['title'],
+                              context: context,
+                              questionId: docs[index].id,
+                              color: question['isHidden']
+                                  ? hiddenQuestionColor
+                                  : answerColor);
+                        });
               });
         });
   }

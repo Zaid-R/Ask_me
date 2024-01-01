@@ -2,11 +2,11 @@
 
 import 'dart:math';
 
-import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
-import 'package:ask_me2/pages/user_pages/home_page.dart';
+import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'dart:io';
 import 'package:ask_me2/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,7 +30,6 @@ class Auth extends ChangeNotifier {
     authData[key] = value;
     notifyListeners();
   }
-
 
   void setBirthDate(DateTime value) {
     birthDate = value;
@@ -61,9 +60,9 @@ class Auth extends ChangeNotifier {
     isLoading = val;
     notifyListeners();
   }
-  
+
   //TODO: why you make return type bool or null ??
-  Future<bool?> authenticate(BuildContext context) async {
+  void authenticate(BuildContext context) async {
     try {
       bool isLogin = authMode == AuthMode.logIn;
       //SignUp expert
@@ -108,36 +107,34 @@ class Auth extends ChangeNotifier {
               .doc(id)
               .set(authData);
 
-          showErrorDialog(
+          showMyDialog(
             'في حال تم قبولك, سنرسل لك ايميل من أجل توثيق حسابك خلال 24 ساعة',
             context,
           );
 
           setPickedFile(null);
-          return true;
+          setRadioGroupValue(0);
         } else {
           var verifiedCollection =
               expertsCollection.doc('verified').collection('experts');
           bool isAdmin = authData['ID'] == '0000';
           if (!isAdmin) {
-            Map<String,dynamic>? expert = (await verifiedCollection.doc(authData['ID']).get()).data();
-            bool isIdExist = expert!=null;
+            Map<String, dynamic>? expert =
+                (await verifiedCollection.doc(authData['ID']).get()).data();
+            bool isIdExist = expert != null;
 
             if (!isIdExist) {
-              showErrorDialog('معرف المستخدم غير صحيح', context);
+              showMyDialog('معرف المستخدم غير صحيح', context);
+              return;
             } else if (isIdExist) {
-              if(expert['isSuspended']){
-                showErrorDialog('تم إيقاف حسابك', context);
-                return false;
-              }
               bool isPasswordCorrect =
-                  expert['password'] ==
-                      authData['password'];
+                  expert['password'] == authData['password'];
               if (!isPasswordCorrect) {
-                showErrorDialog('كلمة السر غير صحيحة', context);
+                showMyDialog('كلمة السر غير صحيحة', context);
+                return;
               } else if (isIdExist && isPasswordCorrect) {
                 writeID(authData['ID']);
-                writeName(expert['last name']+expert['first name']);
+                writeName(expert['first name']+' '+ expert['last name']);
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -147,11 +144,11 @@ class Auth extends ChangeNotifier {
             }
           } else {
             Map<String, dynamic>? adminData = (await FirebaseFirestore.instance
-                        .collection('admin')
-                        .doc('admin')
-                        .get()).data();
-            bool isAdminPassword = 
-                    adminData!['password']
+                    .collection('admin')
+                    .doc('admin')
+                    .get())
+                .data();
+            bool isAdminPassword = adminData!['password']
                     .toString()
                     .compareTo(authData['password']) ==
                 0;
@@ -165,7 +162,8 @@ class Auth extends ChangeNotifier {
                     builder: (_) => const AdminPage(),
                   ));
             } else {
-              showErrorDialog('كلمة السر غير صحيحة', context);
+              showMyDialog('كلمة السر غير صحيحة', context);
+              return;
             }
           }
         }
@@ -181,47 +179,52 @@ class Auth extends ChangeNotifier {
               .firstOrNull
               ?.data();
           if (userData != null) {
-            bool isPasswordCorrect = userData['password'] == authData['password'];
+            bool isPasswordCorrect =
+                userData['password'] == authData['password'];
             if (isPasswordCorrect) {
               writeEmial(authData['email']);
-              writeName(userData['last name']+userData['first name']);
+              writeName(userData['first name'] +' '+userData['last name']);
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const UserPage(),
                   ));
             } else {
-              showErrorDialog(
+              showMyDialog(
                 'كلمة السر غير صحيحة',
                 context,
               );
+              return;
             }
           } else {
-            showErrorDialog(
+            showMyDialog(
               'الايميل غير موجود',
               context,
             );
+            return;
           }
         } else {
           var user = await usersCollection.doc(authData['email']).get();
           bool isEmailExist = user.exists;
           if (isEmailExist) {
-            showErrorDialog(
+            showMyDialog(
               'الايميل مُستخدم مسبقاً',
               context,
             );
+            return;
           } else {
             if (DateTime.now().difference(birthDate).inDays / 365 < 16) {
-              showErrorDialog(
+              showMyDialog(
                 'يجب أن يكون عمرك 16 عام على الأقل',
                 context,
               );
-              return null;
+              return;
             }
 
             writeEmial(authData['email']);
             addAuthData(
                 'birth date', DateFormat('yyyy-MM-dd').format(birthDate));
+            addAuthData('askedQuestions', []);
             usersCollection.doc(authData['email']).set(authData);
             Navigator.pushReplacement(
                 context,

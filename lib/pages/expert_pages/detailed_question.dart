@@ -5,7 +5,7 @@ import 'package:ask_me2/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../loacalData.dart';
+import '../../local_data.dart';
 import '../../widgets/video_preview.dart';
 
 class DetailedQuestionPage extends StatefulWidget {
@@ -30,14 +30,12 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
     return Scaffold(
       backgroundColor: Colors.blue[50],
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: themeColor,
         title: const Text('السؤال'),
       ),
       body: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection('questions')
-              .doc(widget.catId??categoryId)
+              .doc(widget.catId ?? expertCategory)
               .collection('questions')
               .doc(widget.questionId)
               .snapshots(),
@@ -45,8 +43,8 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
-            Map<String, dynamic> question = snapshot.data!.data()!;
-            DateTime originalDate = DateTime.parse(question['date']);
+            Map<String, dynamic> data = snapshot.data!.data()!;
+            DateTime originalDate = DateTime.parse(data['date']);
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,
@@ -54,21 +52,41 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    if(readID() == adminId)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: buildButton(
+                          onPressed: () => FirebaseFirestore.instance
+                              .collection('questions')
+                              .doc(widget.catId ?? expertCategory)
+                              .collection('questions')
+                              .doc(widget.questionId)
+                              .update({'isHidden': !data['isHidden']}),
+                          label: '${data['isHidden'] ? 'إظهار' : 'إخفاء'} السؤال',
+                          context: context,
+                          buttonStyle: buildButtonStyle(
+                            false,
+                            color: !data['isHidden']
+                                ? Colors.grey
+                                : Colors.green[400],
+                          ),
+                          isAnswer: false),
+                    ),
                     buildDecoration(
                       color: Colors.blue[100]!,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            question['title'],
+                            data['title'],
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                          if (!(question['isAnonymous'] as bool))
+                          if (!(data['isAnonymous'] as bool))
                             FutureBuilder(
                                 future: FirebaseFirestore.instance
                                     .collection('users')
-                                    .doc(question['email'])
+                                    .doc(data['email'])
                                     .get(),
                                 builder: (_, snapshot) {
                                   if (!snapshot.hasData) {
@@ -92,24 +110,26 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              question['body'],
+                              data['body'],
                               style: const TextStyle(fontSize: 16),
                             ),
-                            if (question['image url'] != null ||
-                                question['video url'] != null)
+                            if (data['image url'] != null ||
+                                data['video url'] != null)
                               const SizedBox(
                                 height: 10,
                               ),
                             //TODO: work on loadingBuilder of Image.network()
-                            if (question['image url'] != null)
-                              Image.network(question['image url']),
-                            if (question['video url'] != null)
-                              VideoPreviewer(url: question['video url']),
+                            if (data['image url'] != null)
+                              Image.network(data['image url']),
+                            if (data['video url'] != null)
+                              VideoPreviewer(url: data['video url']),
                           ],
                         ),
                         color: Colors.grey[300]!),
                     //Answer button and report button
-                    if (question['answerId'] == null&&question['reportId']==null)
+                    if (data['answerId'] == null &&
+                        data['reportId'] == null &&
+                        readID() != null&&readID()!=adminId)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -127,14 +147,10 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
                       ),
 
                     // Answer Text
-                    if (question['answerId'] != null)
-                      buildResponse(
-                          docId: question['answerId'],
-                          isAnswer: true),
-                    if (question['reportId'] != null&&readID()!=null)
-                      buildResponse(
-                          docId: categoryId + snapshot.data!.id,
-                          isAnswer: false)
+                    if (data['answerId'] != null)
+                      buildResponse(docId: data['answerId'], isAnswer: true),
+                    if (data['reportId'] != null && readID() != null)
+                      buildResponse(docId: data['reportId'], isAnswer: false)
                   ],
                 ),
               ),
@@ -150,9 +166,9 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-               Text(
-                 isAnswer? 'الجواب':'التقرير',
-                style:const TextStyle(
+              Text(
+                isAnswer ? 'الجواب' : 'التقرير',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -241,7 +257,7 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
     _reportFromKey.currentState!.save();
 
     // Document ID for the report
-    String reportDocId = '$categoryId${widget.questionId}';
+    String reportDocId = '$expertCategory${widget.questionId}';
 
     // Data for the report
     Map<String, dynamic> reportData = {
@@ -260,7 +276,7 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
     // Update the "isReported" field for the question
     await FirebaseFirestore.instance
         .collection('questions')
-        .doc(categoryId)
+        .doc(expertCategory)
         .collection('questions')
         .doc(widget.questionId)
         .update({'reportId': reportDocId});
@@ -337,11 +353,12 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
       {required Function()? onPressed,
       required String label,
       required BuildContext context,
-      required bool isAnswer}) {
+      required bool isAnswer,
+      ButtonStyle? buttonStyle}) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: ElevatedButton(
-        style:buildButtonStyle(isAnswer) ,
+        style: buttonStyle ?? buildButtonStyle(isAnswer),
         onPressed: onPressed,
         child: Text(
           label,
@@ -356,7 +373,7 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
     if (!_answerFormKey.currentState!.validate()) return;
     _answerFormKey.currentState!.save();
     // Document ID for the answer
-    String answerDocId = '$categoryId${widget.questionId}';
+    String answerDocId = '$expertCategory${widget.questionId}';
 
     // Data for the answer
     Map<String, dynamic> answerData = {
@@ -375,10 +392,10 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
     // Update the "isAnswered" field for the question
     await FirebaseFirestore.instance
         .collection('questions')
-        .doc(categoryId)
+        .doc(expertCategory)
         .collection('questions')
         .doc(widget.questionId)
-        .update({'isAnswered': true, 'answerId': answerDocId});
+        .update({'answerId': answerDocId});
   }
 
   Material buildDecoration({required Widget child, required Color color}) {

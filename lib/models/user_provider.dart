@@ -8,9 +8,36 @@ class UserProvider extends ChangeNotifier {
   bool isAnonymous = false;
   int drawerId = 0;
   bool isPaused = false;
+  bool isLoading = false;
+  List<String> dates = [];
 
-  void setIsPaused(bool value){
+  void setIsPaused(bool value) {
     isPaused = value;
+    notifyListeners();
+  }
+
+  void setIsLoading(bool value){
+    isLoading = value;
+    notifyListeners();
+  }
+
+  void addToDates(String value) {
+    dates.add(value);
+    notifyListeners();
+  }
+
+  void setDates(List<String> dates) {
+    this.dates = dates;
+    notifyListeners();
+  }
+
+  void removeDate(String value) {
+    dates.remove(value);
+    notifyListeners();
+  }
+
+  void clearDates() {
+    dates.clear();
     notifyListeners();
   }
 

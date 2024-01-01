@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
-import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/widgets/video_preview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -31,7 +31,6 @@ class QuestionFormPage extends StatelessWidget {
       backgroundColor: Colors.blue[50],
       appBar: AppBar(
         title: const Text('كتابة سؤال جديد'),
-        backgroundColor: const Color.fromRGBO(17, 138, 178, 1),
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -44,9 +43,14 @@ class QuestionFormPage extends StatelessWidget {
               ),
               _buildTextField(_titleController, 'العنوان'),
               const SizedBox(height: 16.0),
-              _buildTextField(_bodyController, 'السؤال', maxLines: 5),
+              _buildTextField(_bodyController, 'السؤال',
+                  maxLines: 5,
+                  hint: categoryId == '4'
+                      ? 'يرجى العلم بأن هذا القسم لا يوفّر خدمة الاستشارات الطبيّة التشخيصية، إنّما يقتصر على الإجابة عن كيفية استخدام الأدوية أو عن نتائج الفحوصات المخبرية، أو السّؤال عن القِسم الطِبّي الذي ينبغي للسائل أن يراجعه حسب الأعراض'
+                      : null),
               const SizedBox(height: 16.0),
               _buildAnonymousCheckbox(),
+              const SizedBox(height: 16.0),
               _buildPreviewers(),
             ],
           ),
@@ -56,17 +60,20 @@ class QuestionFormPage extends StatelessWidget {
   }
 
   TextField _buildTextField(TextEditingController controller, String lable,
-      {int maxLines = 1}) {
+      {int maxLines = 1, String? hint}) {
     return TextField(
-        textDirection: TextDirection.rtl,
-        textAlign: TextAlign.right,
-        controller: controller,
-        decoration: _buildTextFieldDecoration(lable),
-        maxLines: maxLines);
+      textDirection: TextDirection.rtl,
+      textAlign: TextAlign.right,
+      controller: controller,
+      decoration: _buildTextFieldDecoration(lable, hint: hint),
+      maxLines: maxLines,
+    );
   }
 
-  InputDecoration _buildTextFieldDecoration(String lable) {
+  InputDecoration _buildTextFieldDecoration(String lable, {String? hint}) {
     return InputDecoration(
+        hintText: hint,
+        hintTextDirection: TextDirection.rtl,
         labelText: lable,
         labelStyle: const TextStyle(color: Colors.black, fontSize: 18),
         enabledBorder: const OutlineInputBorder(
@@ -88,28 +95,23 @@ class QuestionFormPage extends StatelessWidget {
       XFile? image,
       PlatformFile? video,
     }) async {
-      if (_titleController.text.trim().isEmpty) {
-        showErrorDialog('يجب كتابة عنوان مختصر يشير إلى محتوى السؤال', context);
-        return;
-      } else if (_bodyController.text.trim().isEmpty) {
-        showErrorDialog('لا يمكن أن يكون السؤال فارغ', context);
-        return;
-      }
       // Create a new question document
       Map<String, dynamic> questionData = {
         'title': _titleController.text,
         'body': _bodyController.text,
         'date': DateTime.now().toString(),
         'email': readEmail(),
-        'answerId':null,
+        'answerId': null,
         'isAnonymous': isAnonymous,
         'reportId': null,
+        'isHidden':false,
       };
 
       var categoryCollection = FirebaseFirestore.instance
           .collection('questions')
           .doc(categoryId)
           .collection('questions');
+
       String questionId =
           ((await categoryCollection.get()).docs.length + 1).toString();
       if (isUploadImageAllowed) {
@@ -139,6 +141,7 @@ class QuestionFormPage extends StatelessWidget {
               await (await uploadTask.whenComplete(() {})).ref.getDownloadURL();
         }
       }
+
       // Save the question to the database
 
       categoryCollection.doc(questionId).set(questionData);
@@ -211,15 +214,48 @@ class QuestionFormPage extends StatelessWidget {
         children: [
           buildButtons(),
           const SizedBox(
-            height: 10,
+            height: 16,
           ),
           buildLogic(),
-          buildMyElevatedButton(
-              () => _saveQuestionToDatabase(context,
-                  isAnonymous: provider.isAnonymous,
-                  image: provider.image,
-                  video: provider.video),
-              'انشر'),
+          const SizedBox(
+            height: 16,
+          ),
+          provider.isLoading
+              ? const CircularProgressIndicator()
+              : buildMyElevatedButton(() async {
+                  if (_titleController.text.trim().isEmpty) {
+                    showMyDialog(
+                        'يجب كتابة عنوان مختصر يشير إلى محتوى السؤال', context);
+                    return;
+                  } else if (_bodyController.text.trim().isEmpty) {
+                    showMyDialog('لا يمكن أن يكون السؤال فارغ', context);
+                    return;
+                  }
+                  provider.setIsLoading(true);
+                  final user = FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(readEmail());
+                  final dates =
+                      ((await user.get()).data()!['askedQuestions'] as List)
+                          .map((e) => e as String)
+                          .toList();
+                  provider.setDates(dates);
+                  provider.addToDates(DateTime.now().toString());
+                  user.update({'askedQuestions': provider.dates});
+
+                  _saveQuestionToDatabase(
+                    context,
+                    isAnonymous: provider.isAnonymous,
+                    image: provider.image,
+                    video: provider.video,
+                  );
+                  provider.setIsLoading(false);
+                  showMyDialog('تم إرسال سؤالك', context,
+                      color: Colors.green[700],isButtonHidden: true);
+                  await Future.delayed(const Duration(seconds: 2));
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                }, 'انشر'),
         ],
       );
     });

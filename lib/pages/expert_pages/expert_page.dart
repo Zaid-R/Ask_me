@@ -1,7 +1,7 @@
 import 'package:ask_me2/models/menu_item.dart';
 import 'package:ask_me2/my_drawer.dart';
 import 'package:ask_me2/pages/expert_pages/answers.dart';
-import 'package:ask_me2/pages/expert_pages/questions.dart';
+import 'package:ask_me2/pages/questions.dart';
 import 'package:ask_me2/pages/expert_pages/reports.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,7 @@ class ExpertPage extends StatelessWidget {
         MenuItem(
             title: 'الأسئلة',
             icon: Icons.question_answer_outlined,
-            child:  QuestionList()),
+            child:  const QuestionList()),
         MenuItem(
             title: 'إجاباتي',
             icon: Icons.lightbulb_outlined,

@@ -28,11 +28,14 @@ dependencies:
   intl: null
   provider: null
   http: 
+  connectivity_plus:
+  flutter_offline:
   mailer: ^6.0.1
 
 dev_dependencies:
   flutter_lints: null
   flutter_launcher_icons:
+  connectivity:
   flutter_test:
     sdk: flutter
 

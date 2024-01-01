@@ -1,4 +1,4 @@
-import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/models/menu_item.dart';
 import 'package:ask_me2/pages/auth_page.dart';

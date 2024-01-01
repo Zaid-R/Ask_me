@@ -1,4 +1,4 @@
-import 'package:ask_me2/loacalData.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +19,7 @@ class ReprotList extends StatelessWidget {
           return StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('questions')
-                  .doc(categoryId)
+                  .doc(expertCategory)
                   .collection('questions')
                   .snapshots(),
               builder: (context, questions) {
@@ -27,26 +27,32 @@ class ReprotList extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                List<String> reportIds = reports.data!.docs
+                    .where((report) => report.get('expertId') == readID())
+                    .map((e) => e.id)
+                    .toList();
+
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
-                        .where((e) =>
-                            e['reportId'] != null &&
-                            reports.data!.docs
-                                    .firstWhere((element) =>
-                                        element.id == e['reportId'])
-                                    .data()['expertId'] ==
-                                readID())
+                        .where((question) =>
+                            question['reportId'] != null &&reportIds.contains(question['reportId']))
                         .toList();
 
-                return docs.isEmpty?buildEmptyMessage('لم تقم بالإبلاغ عن أي سؤال'): ListView.builder(
-                    itemCount: docs.length,
-                    itemBuilder: (context, index) {
-                      Map<String, dynamic> question = docs[index].data();
-                      return buildQuestionTitleCard(
-                          question, context, docs, index);
-                    });
+                return docs.isEmpty
+                    ? buildEmptyMessage('لم تقم بالإبلاغ عن أي سؤال')
+                    : ListView.builder(
+                        itemCount: docs.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> question = docs[index].data();
+                          return buildQuestionTitleCard(
+                              title: question['title'],
+                              context: context,
+                              questionId: docs[index].id,
+                              color:question['isHidden']
+                                  ? hiddenQuestionColor
+                                  : reportColor);
+                        });
               });
         });
-  
   }
 }

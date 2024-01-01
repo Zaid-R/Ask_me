@@ -1,8 +1,6 @@
 import 'package:ask_me2/utils.dart';
 import 'package:flutter/material.dart';
 
-
-
 // ignore: must_be_immutable
 class Field extends StatefulWidget {
   final String title;
@@ -16,7 +14,7 @@ class Field extends StatefulWidget {
   bool _isObscureText;
 
   Field({
-    super.key, 
+    super.key,
     required this.title,
     required this.width,
     required this.validator,
@@ -26,13 +24,12 @@ class Field extends StatefulWidget {
     this.controller,
     this.isPassword = false,
   }) : _isObscureText = isPassword;
-  
+
   @override
-  State<StatefulWidget> createState()=>_FieldState();
+  State<StatefulWidget> createState() => _FieldState();
 }
 
-class _FieldState extends State<Field>{
-  
+class _FieldState extends State<Field> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,40 +40,57 @@ class _FieldState extends State<Field>{
         borderRadius: BorderRadius.circular(50.0),
       ),
       child: TextFormField(
-        cursorColor:Colors.grey[700],
+        cursorColor: Colors.grey[700],
         controller: widget.controller,
         validator: widget.validator,
         onSaved: widget.onSaved,
+        textDirection: ![
+          'الايميل',
+          'معرف المستخدم',
+          'كلمة السر',
+          'تأكيد كلمة السر',
+          'رقم الهاتف'
+        ].contains(widget.title)
+            ? TextDirection.rtl
+            : null,
         obscureText: widget._isObscureText,
         keyboardType: widget.inputType,
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50.0),
-            borderSide: const BorderSide(
-              color: themeColor
-            )
-          ),
-          contentPadding: const EdgeInsets.all(15),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50.0),
-          ),
-          labelText: widget.title,
-          labelStyle: const TextStyle(
-              fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87),
-          hintText: widget.hint,
-          hintStyle: const TextStyle(fontSize: 20),
-          suffixIcon:widget.isPassword? IconButton(
-            icon: Icon(
-              // Based on passwordVisible state choose the icon
-               widget._isObscureText
-               ? Icons.visibility
-               : Icons.visibility_off,
-               color: Colors.black87,
-               ),
-            onPressed: () =>setState(() => widget._isObscureText=!widget._isObscureText),
-            ):null
-        ),
+          //alignLabelWithHint: true,
+          floatingLabelBehavior:FloatingLabelBehavior.always,
+            floatingLabelAlignment: FloatingLabelAlignment.center,
+            label: Text(
+              widget.title,
+              textAlign: TextAlign.end,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87),
+            ),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(50.0),
+                borderSide: const BorderSide(color: themeColor)),
+            contentPadding: const EdgeInsets.all(15),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(50.0),
+            ),
+            hintText: widget.hint,
+            hintStyle: const TextStyle(fontSize: 20),
+            suffixIcon: widget.isPassword
+                ? IconButton(
+                    icon: Icon(
+                      // Based on passwordVisible state choose the icon
+                      widget._isObscureText
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () => setState(
+                        () => widget._isObscureText = !widget._isObscureText),
+                  )
+                : null),
       ),
     );
   }

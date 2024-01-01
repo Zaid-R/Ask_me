@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ask_me2/loacalData.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ask_me2/local_data.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,18 +9,21 @@ import 'pages/expert_pages/detailed_question.dart';
 
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
-String categoryId = readID()![0];
+const Color answerColor = Color.fromARGB(255, 165, 214, 167);
+const Color reportColor =Color.fromARGB(255,239,154,154);
+const Color hiddenQuestionColor = Color.fromARGB(255,189,189,189);
+String expertCategory = readID()![0];
 const String adminId = '0000';
 
 Widget circularIndicator = const Center(
   child: CircularProgressIndicator(),
 );
 
-ButtonStyle buildButtonStyle(bool condition) {
+ButtonStyle buildButtonStyle(bool condition, {Color? color}) {
   return ButtonStyle(
     elevation: const MaterialStatePropertyAll(10),
     backgroundColor: MaterialStatePropertyAll(
-        condition ? Colors.green[400] : Colors.red[600]),
+        color ?? (condition ? Colors.green[400] : Colors.red[600])),
   );
 }
 
@@ -43,14 +45,17 @@ Future<XFile?> pickImage(BuildContext context) async {
   return null;
 }
 
-Card buildQuestionTitleCard(Map<String, dynamic> question, BuildContext context,
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs, int index,
-    {Color? color}) {
+Card buildQuestionTitleCard(
+    {required String title,
+    required BuildContext context,
+    required String questionId,
+    String? catId,
+    Color? color}) {
   return Card(
     color: color ?? Colors.blue[100],
     child: ListTile(
       title: Text(
-        question['title'],
+        title,
         textAlign: TextAlign.end,
       ),
       onTap: () {
@@ -59,8 +64,8 @@ Card buildQuestionTitleCard(Map<String, dynamic> question, BuildContext context,
           context,
           MaterialPageRoute(
             builder: (context) => DetailedQuestionPage(
-              questionId: docs[index].id,
-              catId: null,
+              questionId: questionId,
+              catId: catId,
             ),
           ),
         );
@@ -75,12 +80,12 @@ Future<PlatformFile?> selectFile(bool isPdf, BuildContext context) async {
   String fileName = result.files.first.name;
   if (isPdf) {
     if (!fileName.contains('.pdf')) {
-      showErrorDialog('pdf يجب أن يكون الملف من نوع', context);
+      showMyDialog('pdf يجب أن يكون الملف من نوع', context);
       return null;
     }
   } else {
     if (!fileName.contains('.mp4')) {
-      showErrorDialog('ممنوع تحميل ملف آخر غير الفيديو', context);
+      showMyDialog('ممنوع تحميل ملف آخر غير الفيديو', context);
       return null;
     }
   }
@@ -108,23 +113,34 @@ ButtonStyle buildSelectButtonStyle() {
       backgroundColor: Colors.blue);
 }
 
-void showErrorDialog(String message, BuildContext context) {
+void showMyDialog(String message, BuildContext context,
+    {Color? color, bool isButtonHidden = false}) {
   showDialog(
+    barrierDismissible: false,
       context: context,
       builder: (ctx) => AlertDialog(
             content: Text(
               message,
-              style: const TextStyle(fontSize: 18),
+              textDirection: TextDirection.rtl,
+              style: TextStyle(fontSize: 18, color: color),
             ),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                },
-                child: const Text(
-                  'اغلاق',
-                ),
-              )
-            ],
+            actions: isButtonHidden
+                ? null
+                : [
+                    Center(
+                      child: ElevatedButton(
+                        style: const ButtonStyle(
+                            backgroundColor:
+                                MaterialStatePropertyAll(themeColor)),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text(
+                          'اغلاق',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    )
+                  ],
           ));
 }

@@ -1,11 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
-import 'dart:io';
-import 'package:ask_me2/loacalData.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ask_me2/utils.dart';
 import 'package:intl/intl.dart';
@@ -23,9 +19,9 @@ class _AuthPageState extends State<AuthPage> {
   final userTypeButtonStyle = ButtonStyle(
       backgroundColor: MaterialStatePropertyAll(buttonColor.withRed(200)));
   final idController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey();
+  final GlobalKey<FormState> formKey = GlobalKey();
   final emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final passwordController = TextEditingController();
   var radioValue = 1;
 
   Widget buildLabelBackground(Widget child) => Container(
@@ -38,25 +34,15 @@ class _AuthPageState extends State<AuthPage> {
 
   @override
   void dispose() {
-    _passwordController.dispose();
+    passwordController.dispose();
+    formKey.currentState!.reset();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    PlatformFile? file =
-        context.select<Auth, PlatformFile?>((provider) => provider.pickedFile);
-    DateTime now = DateTime.now();
-    DateTime birthDate =
-        context.select<Auth, DateTime>((provider) => provider.birthDate);
-    var authMode =
-        context.select<Auth, AuthMode>((provider) => provider.authMode);
-    int radioGroupValue =
-        context.select<Auth, int>((provider) => provider.radioGroupValue);
-    bool isSignUp = authMode == AuthMode.signUp;
-    bool isLoading =
-        context.select<Auth, bool>((provider) => provider.isLoading);
-    bool isExpert = context.select<Auth, bool>((provider) => provider.isExpert);
+    final auth = context.watch<Auth>();
+    bool isSignUp = auth.authMode == AuthMode.signUp;
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     TextStyle linkTextStyle = const TextStyle(
@@ -76,13 +62,12 @@ class _AuthPageState extends State<AuthPage> {
           title: 'كلمة السر',
           isPassword: true,
           inputType: TextInputType.text,
-          controller: _passwordController,
+          controller: passwordController,
           validator: (value) {
-            if (value != null) {
-              String errorMessage = 'كلمةالسر غير صحيحة';
+            if (value != null && isSignUp) {
+              String errorMessage = '';
               if (value.isEmpty || value.length < 6) {
-                showErrorDialog(
-                    'يجب أن تكون كلمة السر مكونة من 6 خانات على الأقل',
+                showMyDialog('يجب أن تكون كلمة السر مكونة من 6 خانات على الأقل',
                     context);
                 return errorMessage;
               } else if (value
@@ -90,7 +75,7 @@ class _AuthPageState extends State<AuthPage> {
                   .toSet()
                   .intersection(characters.toSet())
                   .isEmpty) {
-                showErrorDialog(
+                showMyDialog(
                     'يجب أن تحتوي كلمة السر على رمز واحد أو حرف انجليزي واحد على الأقل',
                     context);
                 return errorMessage;
@@ -99,14 +84,14 @@ class _AuthPageState extends State<AuthPage> {
             return null;
           },
           onSaved: (newValue) {
-            context.read<Auth>().addAuthData('password', newValue!);
+            auth.addAuthData('password', newValue!);
           },
           width: screenWidth * 0.6);
     }
 
     TextButton buildSwitchAuthModeButton(TextStyle linkTextStyle) {
       return TextButton(
-        onPressed: context.read<Auth>().switchAuthMode,
+        onPressed: auth.switchAuthMode,
         style: const ButtonStyle(
             backgroundColor: MaterialStatePropertyAll(Colors.transparent)),
         child: Text(!isSignUp ? 'إنشاء حساب جديد' : 'تسجيل الدخول',
@@ -116,17 +101,16 @@ class _AuthPageState extends State<AuthPage> {
 
     //TODO: put all validations on input here in this method, don't keep any validations in authinticate()
     void validate() async {
-      final auth = context.read<Auth>();
       //make sure the data is valid
-      if (!_formKey.currentState!.validate()) return;
+      if (!formKey.currentState!.validate()) return;
       //save the data after passing the condition successfully
-      context.read<Auth>().setIsLoading(true);
-      _formKey.currentState!.save();
+      auth.setIsLoading(true);
+      formKey.currentState!.save();
       try {
-        if (isSignUp && isExpert) {
-          if (radioGroupValue == 0) {
-            showErrorDialog('يجب أن تختار تخصصك', context);
-            context.read<Auth>().setIsLoading(false);
+        if (isSignUp && auth.isExpert) {
+          if (auth.radioGroupValue == 0) {
+            showMyDialog('يجب أن تختار تخصصك', context);
+            auth.setIsLoading(false);
             return;
           }
           var newComersCollection = (await FirebaseFirestore.instance
@@ -141,62 +125,61 @@ class _AuthPageState extends State<AuthPage> {
               .get());
           bool isEmailUsed = newComersCollection.docs
                   .where((expert) =>
-                      expert.data()['email'] ==
-                      context.read<Auth>().authData['email'])
+                      expert.data()['email'] == auth.authData['email'])
                   .isNotEmpty ||
               verifiedCollection.docs
                   .where((expert) =>
-                      expert.data()['email'] ==
-                      context.read<Auth>().authData['email'])
+                      expert.data()['email'] == auth.authData['email'])
                   .isNotEmpty;
 
-          if (file == null) {
-            showErrorDialog(
+          if (auth.pickedFile == null) {
+            showMyDialog(
               'يجب أن تقوم بتحميل شهادتك',
               context,
             );
+            return;
           } else if (isEmailUsed) {
-            showErrorDialog(
+            showMyDialog(
               'الايميل مُستخدم مسبقاً',
               context,
             );
+            return;
           } else if (newComersCollection.docs
                   .where((expert) =>
                       expert.data()['phoneNumber'] ==
-                      context.read<Auth>().authData['phoneNumber'])
+                      auth.authData['phoneNumber'])
                   .isNotEmpty ||
               verifiedCollection.docs
                   .where((expert) =>
                       expert.data()['phoneNumber'] ==
-                      context.read<Auth>().authData['phoneNumber'])
+                      auth.authData['phoneNumber'])
                   .isNotEmpty) {
-            showErrorDialog(
+            showMyDialog(
               'رقم الهاتف مُستخدم مسبقاً',
               context,
             );
-          } else {
-            bool? isSuccessful = await auth.authenticate(context);
-            if (isSuccessful != null && isSuccessful) {
-              _formKey.currentState!.reset();
-            }
+            return;
           }
+          auth.authenticate(context);
+          formKey.currentState!.reset();
         }
         //SignUp user
-        else if (isSignUp && !isExpert) {
+        else if (isSignUp && !auth.isExpert) {
           var usersCollection =
               (await FirebaseFirestore.instance.collection('users').get());
-          var list = usersCollection.docs.where((user) =>
-              user.data()['email'] == context.read<Auth>().authData['email']);
+          var list = usersCollection.docs
+              .where((user) => user.data()['email'] == auth.authData['email']);
           if (list.isNotEmpty) {
-            showErrorDialog('الايميل مُستخدم مسبقاً', context);
+            showMyDialog('الايميل مُستخدم مسبقاً', context);
+            return;
           } else {
-            await auth.authenticate(context);
+             auth.authenticate(context);
           }
         }
         //Login Expert
-        else if (!isSignUp && isExpert) {
+        else if (!isSignUp && auth.isExpert) {
           if (idController.text == adminId) {
-            await auth.authenticate(context);
+             auth.authenticate(context);
           } else {
             var expert = (await FirebaseFirestore.instance
                     .collection('experts')
@@ -206,28 +189,30 @@ class _AuthPageState extends State<AuthPage> {
                     .get())
                 .data();
 
-            if (expert != null && expert['verification'] == 2) {
-              showErrorDialog(
+            if (expert != null && expert['isSuspended']) {
+              showMyDialog(
                 'حسابك معّطل',
                 context,
               );
+              return;
             } else {
-              await auth.authenticate(context);
+               auth.authenticate(context);
             }
           }
         }
         //Login user
-        else if (!isSignUp && !isExpert) {
-          await auth.authenticate(context);
+        else if (!isSignUp && !auth.isExpert) {
+           auth.authenticate(context);
         }
+        auth.setIsLoading(false);
       } catch (e) {
-        context.read<Auth>().setIsLoading(false);
-        showErrorDialog(
+        auth.setIsLoading(false);
+        showMyDialog(
           e.toString(),
           context,
         );
       }
-      context.read<Auth>().setIsLoading(false);
+      
     }
 
     ElevatedButton buildSubmitButton() {
@@ -249,8 +234,8 @@ class _AuthPageState extends State<AuthPage> {
     Column buildFields(double screenWidth) {
       return Column(
         children: [
-          if (isExpert && !isSignUp) buildIdField(screenWidth),
-          if (!isExpert || isSignUp) buildEmailField(screenWidth),
+          if (auth.isExpert && !isSignUp) buildIdField(screenWidth),
+          if (!auth.isExpert || isSignUp) buildEmailField(screenWidth),
           buildPasswordField(screenWidth),
           if (isSignUp) buildConfirmPasswordField(screenWidth),
           if (isSignUp) buildFirstNameField(screenWidth),
@@ -264,7 +249,7 @@ class _AuthPageState extends State<AuthPage> {
     }
 
     Widget buildSelectionLabel() {
-      return radioGroupValue == 0
+      return auth.radioGroupValue == 0
           ? buildLabelBackground(const SizedBox(
               height: 30,
               width: 30,
@@ -272,7 +257,7 @@ class _AuthPageState extends State<AuthPage> {
           : FutureBuilder(
               future: FirebaseFirestore.instance
                   .collection('specializations')
-                  .doc(radioGroupValue.toString())
+                  .doc(auth.radioGroupValue.toString())
                   .get(),
               builder: (_, future) => future.hasData
                   ? buildLabelBackground(Text(
@@ -306,7 +291,7 @@ class _AuthPageState extends State<AuthPage> {
         buildFormBackground(
           screenWidth: screenWidth,
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -315,11 +300,12 @@ class _AuthPageState extends State<AuthPage> {
                   buildFields(screenWidth),
                   if (!isSignUp) buildForgotPasswordText(linkTextStyle),
                   //Display this widgets when user want to create new account
-                  if (isSignUp && !isExpert)
-                    buildSelectBirthDate(context, now, birthDate),
-                  if (isSignUp && isExpert)
+                  if (isSignUp && !auth.isExpert)
+                    buildSelectBirthDate(
+                        context, DateTime.now(), auth.birthDate),
+                  if (isSignUp && auth.isExpert)
                     buildSpecializationRadioButtons(context),
-                  if (isSignUp && isExpert)
+                  if (isSignUp && auth.isExpert)
                     Column(
                       children: [
                         const Padding(
@@ -332,9 +318,12 @@ class _AuthPageState extends State<AuthPage> {
                                 fontSize: 15, fontWeight: FontWeight.w600),
                           ),
                         ),
-                        file == null
+                        auth.pickedFile == null
                             ? ElevatedButton(
-                                onPressed: () async=> context.read<Auth>().setPickedFile(await selectFile(true,context)),
+                                onPressed: () async => context
+                                    .read<Auth>()
+                                    .setPickedFile(
+                                        await selectFile(true, context)),
                                 style: buildSelectButtonStyle(),
                                 child: Text(
                                   'تحميل',
@@ -342,12 +331,12 @@ class _AuthPageState extends State<AuthPage> {
                                 ),
                               )
                             : Container(),
-                        file == null
+                        auth.pickedFile == null
                             ? Container()
                             : Wrap(
                                 alignment: WrapAlignment.center,
                                 children: [
-                                  Text(file.name),
+                                  Text(auth.pickedFile!.name),
                                   IconButton(
                                     icon: const Icon(
                                       Icons.delete,
@@ -363,7 +352,7 @@ class _AuthPageState extends State<AuthPage> {
                       ],
                     ),
                   buildDivider(),
-                  !isLoading
+                  !auth.isLoading
                       ? Column(
                           children: [
                             buildSubmitButton(),
@@ -462,7 +451,8 @@ class _AuthPageState extends State<AuthPage> {
             .toList(),
       ),
       onPressed: () async {
-        QuerySnapshot<Map<String, dynamic>> collection = await FirebaseFirestore.instance
+        QuerySnapshot<Map<String, dynamic>> collection = await FirebaseFirestore
+            .instance
             .collection('specializations')
             .get();
         var specializations = collection.docs;
@@ -537,7 +527,6 @@ class _AuthPageState extends State<AuthPage> {
                     value: provider.isExpert,
                     onChanged: (value) {
                       provider.setIsExpert(value);
-                      _formKey.currentState!.reset();
                     }),
                 Text(
                   'خبير',
@@ -554,16 +543,23 @@ class _AuthPageState extends State<AuthPage> {
 
   AppBar buildAppBar() {
     return AppBar(
-      backgroundColor: themeColor,
       title: const Text('Ask Me'),
-      centerTitle: true,
-      actions: [IconButton(onPressed: ()=>Navigator.pushReplacement(context, MaterialPageRoute(builder:(_)=> CategoriesPage())), icon: const Icon(Icons.close))],
+      actions: [
+        Consumer<Auth>(
+          builder: (_, provider, __) => provider.isLoading
+              ? Container()
+              : IconButton(
+                  onPressed: () => Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => CategoriesPage())),
+                  icon: const Icon(Icons.close),
+                ),
+        ),
+      ],
     );
   }
 
   Field buildPhoneNumberField(double screenWidth) {
     return Field(
-        controller: TextEditingController(),
         inputType: TextInputType.phone,
         title: 'رقم الهاتف',
         hint: '07 #### ####',
@@ -588,7 +584,6 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildLastNameField(double screenWidth) {
     return Field(
-        controller: TextEditingController(),
         title: 'اسم العائلة',
         validator: (value) {
           return value!.isEmpty ? 'ادخل اسم العائلة' : null;
@@ -600,7 +595,6 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildFirstNameField(double screenWidth) {
     return Field(
-        controller: TextEditingController(),
         title: 'الاسم الأول',
         validator: (value) {
           return value!.isEmpty ? 'ادخل اسمك الأول' : null;
@@ -612,11 +606,10 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildConfirmPasswordField(double screenWidth) {
     return Field(
-        controller: TextEditingController(),
         isPassword: true,
         title: 'تأكيد كلمة السر',
         validator: (value) {
-          return value != _passwordController.text
+          return value != passwordController.text
               ? 'كلمة السر غير متطابقة'
               : null;
         },
@@ -653,5 +646,4 @@ class _AuthPageState extends State<AuthPage> {
   Widget buildDivider() {
     return const Divider(thickness: 2, color: Colors.grey, height: 50);
   }
-
 }
