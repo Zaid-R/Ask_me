@@ -19,7 +19,7 @@ class _ExpertListPageState extends State<ExpertListPage>
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 2, vsync: this); // Number of tabs
+    tabController = TabController(length: 2, vsync: this,); // Number of tabs
   }
 
   @override
@@ -32,11 +32,12 @@ class _ExpertListPageState extends State<ExpertListPage>
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: TabBar(
             indicatorColor: themeColor,
             controller: tabController,
             tabs: const [
-              Tab(text: 'الخبراء الجدد'),
+              Tab(text: 'الخبراء الجدد',),
               Tab(text: 'الخبراء المسجلين'),
             ],
           ),
@@ -125,6 +126,7 @@ class VerifiedList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: TextField(
           textAlign: TextAlign.right,
           // controller: _searchController,

@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
+import 'package:ask_me2/models/admin_provider.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   void dispose() {
     passwordController.dispose();
-    formKey.currentState!.reset();
+    //formKey.currentState!.reset();
     super.dispose();
   }
 
@@ -137,13 +138,11 @@ class _AuthPageState extends State<AuthPage> {
               'يجب أن تقوم بتحميل شهادتك',
               context,
             );
-            return;
           } else if (isEmailUsed) {
             showMyDialog(
               'الايميل مُستخدم مسبقاً',
               context,
             );
-            return;
           } else if (newComersCollection.docs
                   .where((expert) =>
                       expert.data()['phoneNumber'] ==
@@ -158,10 +157,10 @@ class _AuthPageState extends State<AuthPage> {
               'رقم الهاتف مُستخدم مسبقاً',
               context,
             );
-            return;
-          }
-          auth.authenticate(context);
+          }else{
+            auth.authenticate(context);
           formKey.currentState!.reset();
+          }
         }
         //SignUp user
         else if (isSignUp && !auth.isExpert) {
@@ -171,7 +170,6 @@ class _AuthPageState extends State<AuthPage> {
               .where((user) => user.data()['email'] == auth.authData['email']);
           if (list.isNotEmpty) {
             showMyDialog('الايميل مُستخدم مسبقاً', context);
-            return;
           } else {
              auth.authenticate(context);
           }
@@ -194,7 +192,6 @@ class _AuthPageState extends State<AuthPage> {
                 'حسابك معّطل',
                 context,
               );
-              return;
             } else {
                auth.authenticate(context);
             }

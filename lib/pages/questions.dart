@@ -21,68 +21,6 @@ class _QuestionListState extends State<QuestionList> {
   Widget build(BuildContext context) {
     return readID() == adminId
         ?AllQuestionsStream(isUser: false) 
-        // StreamBuilder(
-        //     stream:
-        //         FirebaseFirestore.instance.collection('questions').snapshots(),
-        //     builder: (context, baseCollection) {
-        //       if (!baseCollection.hasData) {
-        //         return const Center(child: CircularProgressIndicator());
-        //       }
-        //       return SingleChildScrollView(
-        //         child: Column(
-        //           children: baseCollection.data!.docs
-        //               .map((e) => StreamBuilder(
-        //                   stream: e.reference.snapshots(),
-        //                   builder: (context, categorySnapshots) {
-        //                     if (!categorySnapshots.hasData) {
-        //                       return const Center(
-        //                           child: CircularProgressIndicator());
-        //                     }
-
-        //                     return StreamBuilder(
-        //                         stream: categorySnapshots.data!.reference
-        //                             .collection('questions')
-        //                             .snapshots(),
-        //                         builder: (context, questionCollections) {
-        //                           if (!questionCollections.hasData) {
-        //                             return circularIndicator;
-        //                           }
-
-        //                           List<
-        //                                   QueryDocumentSnapshot<
-        //                                       Map<String, dynamic>>> docs =
-        //                               questionCollections.data!.docs;
-
-        //                           return Column(
-        //                             children: docs.map((question) {
-        //                               Map<String, dynamic> data =
-        //                                   question.data();
-        //                               return data.isEmpty
-        //                                   ? Container()
-        //                                   :
-        //                                   //TODO: here where you gonna control the color of questionCard for admin
-
-        //                                   buildQuestionTitleCard(
-        //                                       title: data['title'],
-        //                                       context: context,
-        //                                       questionId: question.id,
-        //                                       catId: categorySnapshots.data!.id,
-        //                                       color: data['isHidden']
-        //                                           ? hiddenQuestionColor
-        //                                           : data['answerId'] != null
-        //                                               ? answerColor
-        //                                               : data['reportId'] != null
-        //                                                   ? reportColor
-        //                                                   : null);
-        //                             }).toList(),
-        //                           );
-        //                         });
-        //                   }))
-        //               .toList(),
-        //         ),
-        //       );
-        //     })
-        
         : StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('questions')
@@ -98,7 +36,7 @@ class _QuestionListState extends State<QuestionList> {
                   snapshot.data!.docs.where((question) {
                 bool isAnswered = question['answerId'] != null;
                 bool isReported = question['reportId'] != null;
-                bool expertCondition = isAnswered && !isReported;
+                bool expertCondition = !isAnswered && !isReported;
 
                 bool userCondition =
                     !isReported && !question['isHidden'] && isAnswered;

@@ -1,11 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:math';
 
 import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
-import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'dart:io';
 import 'package:ask_me2/utils.dart';
@@ -28,6 +26,11 @@ class Auth extends ChangeNotifier {
 
   void addAuthData(String key, dynamic value) {
     authData[key] = value;
+    notifyListeners();
+  }
+
+  void clearAuthData(){
+    authData = {};
     notifyListeners();
   }
 
@@ -135,6 +138,7 @@ class Auth extends ChangeNotifier {
               } else if (isIdExist && isPasswordCorrect) {
                 writeID(authData['ID']);
                 writeName(expert['first name']+' '+ expert['last name']);
+                clearAuthData();
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -156,6 +160,7 @@ class Auth extends ChangeNotifier {
             if (isAdminPassword) {
               writeID(authData['ID']);
               writeName(adminData['name']);
+              clearAuthData();
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -184,6 +189,7 @@ class Auth extends ChangeNotifier {
             if (isPasswordCorrect) {
               writeEmial(authData['email']);
               writeName(userData['first name'] +' '+userData['last name']);
+              clearAuthData();
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -222,14 +228,16 @@ class Auth extends ChangeNotifier {
             }
 
             writeEmial(authData['email']);
+            writeName(authData['first name'] +' '+authData['last name']);
             addAuthData(
                 'birth date', DateFormat('yyyy-MM-dd').format(birthDate));
             addAuthData('askedQuestions', []);
             usersCollection.doc(authData['email']).set(authData);
+            clearAuthData();
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CategoriesPage(),
+                  builder: (_) => const UserPage(),
                 ));
           }
         }

@@ -135,7 +135,8 @@ class ExpertDetailsPage extends StatelessWidget {
                                     context
                                         .read<AdminProvider>()
                                         .setIsLoading(true);
-                                    await deleteNewComer();
+                                    deleteNewComer();
+                                    await getOldReference().delete();
                                     context
                                         .read<AdminProvider>()
                                         .setIsLoading(false);
@@ -162,6 +163,7 @@ class ExpertDetailsPage extends StatelessWidget {
              مدير البرنامج صهيب أبو قرع
                                   ''',
                                   );
+                                  deleteNewComer();
                                   context
                                       .read<AdminProvider>()
                                       .setIsLoading(false);
@@ -196,16 +198,16 @@ class ExpertDetailsPage extends StatelessWidget {
         .child('degrees/new comers/$expertId.pdf');
   }
 
-  Future<String?> _moveDegree() async {
+  Future<String?> _moveDegree(String newId) async {
     // Construct paths for the old and new locations
-    String newPath = 'degrees/verified/$expertId.pdf';
+    String newPath = 'degrees/verified/$newId.pdf';
 
     try {
       // Get the file reference from the old location
       Reference oldReference = getOldReference();
 
       // Download the file to a temporary local file
-      File tempFile = File('${Directory.systemTemp.path}/$expertId.pdf');
+      File tempFile = File('${Directory.systemTemp.path}/$newId.pdf');
       await oldReference.writeToFile(tempFile);
 
       // Delete the file from the old location
@@ -225,10 +227,6 @@ class ExpertDetailsPage extends StatelessWidget {
   }
 
   Future<String> moveToVerified(Map<String, dynamic> data) async {
-    //delete from new comers
-
-    await deleteNewComer();
-
     //add to verified collection
     CollectionReference<Map<String, dynamic>> verifiedCollection =
         _allExpertsCollection.doc('verified').collection('experts');
@@ -238,17 +236,17 @@ class ExpertDetailsPage extends StatelessWidget {
         .where((id) => id.startsWith(expertId[0]))
         .lastOrNull;
 
-    var newId = lastIdInTheField == null
+    String newId = lastIdInTheField == null
         ? '${expertId[0]}000'
         : (int.parse(lastIdInTheField) + 1).toString();
 
-    data['degree url'] = (await _moveDegree())!;
+    data['degree url'] = (await _moveDegree(newId))!;
 
     verifiedCollection.doc(newId).set(data);
     return newId;
   }
 
-  Future<void> deleteNewComer() async {
+  void deleteNewComer() async {
     await Future.wait([
       _allExpertsCollection
           .doc('new comers')
