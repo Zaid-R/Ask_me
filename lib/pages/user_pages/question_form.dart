@@ -27,32 +27,36 @@ class QuestionFormPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue[50],
-      appBar: AppBar(
-        title: const Text('كتابة سؤال جديد'),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 10,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.blue[50],
+        appBar: AppBar(
+          title: const Text('كتابة سؤال جديد'),
+        ),
+        body: buildOfflineWidget(
+          onlineWidget: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  _buildTextField(_titleController, 'العنوان'),
+                  const SizedBox(height: 16.0),
+                  _buildTextField(_bodyController, 'السؤال',
+                      maxLines: 5,
+                      hint: categoryId == '4'
+                          ? 'يرجى العلم بأن هذا القسم لا يوفّر خدمة الاستشارات الطبيّة التشخيصية، إنّما يقتصر على الإجابة عن كيفية استخدام الأدوية أو عن نتائج الفحوصات المخبرية، أو السّؤال عن القِسم الطِبّي الذي ينبغي للسائل أن يراجعه حسب الأعراض'
+                          : null),
+                  const SizedBox(height: 16.0),
+                  _buildAnonymousCheckbox(),
+                  const SizedBox(height: 16.0),
+                  _buildPreviewers(),
+                ],
               ),
-              _buildTextField(_titleController, 'العنوان'),
-              const SizedBox(height: 16.0),
-              _buildTextField(_bodyController, 'السؤال',
-                  maxLines: 5,
-                  hint: categoryId == '4'
-                      ? 'يرجى العلم بأن هذا القسم لا يوفّر خدمة الاستشارات الطبيّة التشخيصية، إنّما يقتصر على الإجابة عن كيفية استخدام الأدوية أو عن نتائج الفحوصات المخبرية، أو السّؤال عن القِسم الطِبّي الذي ينبغي للسائل أن يراجعه حسب الأعراض'
-                      : null),
-              const SizedBox(height: 16.0),
-              _buildAnonymousCheckbox(),
-              const SizedBox(height: 16.0),
-              _buildPreviewers(),
-            ],
+            ),
           ),
         ),
       ),

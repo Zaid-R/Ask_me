@@ -27,135 +27,139 @@ class _DetailedQuestionPageState extends State<DetailedQuestionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue[50],
-      appBar: AppBar(
-        title: const Text('السؤال'),
-      ),
-      body: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('questions')
-              .doc(widget.catId ?? expertCategory)
-              .collection('questions')
-              .doc(widget.questionId)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            Map<String, dynamic> data = snapshot.data!.data()!;
-            DateTime originalDate = DateTime.parse(data['date']);
-            return SingleChildScrollView(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if(readID() == adminId)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: buildButton(
-                          onPressed: () => FirebaseFirestore.instance
-                              .collection('questions')
-                              .doc(widget.catId ?? expertCategory)
-                              .collection('questions')
-                              .doc(widget.questionId)
-                              .update({'isHidden': !data['isHidden']}),
-                          label: '${data['isHidden'] ? 'إظهار' : 'إخفاء'} السؤال',
-                          context: context,
-                          buttonStyle: buildButtonStyle(
-                            false,
-                            color: !data['isHidden']
-                                ? Colors.grey
-                                : Colors.green[400],
-                          ),
-                          isAnswer: false),
-                    ),
-                    buildDecoration(
-                      color: Colors.blue[100]!,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            data['title'],
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          if (!(data['isAnonymous'] as bool))
-                            FutureBuilder(
-                                future: FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(data['email'])
-                                    .get(),
-                                builder: (_, snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return const CircularProgressIndicator();
-                                  }
-                                  return Text(
-                                      '${snapshot.data!['first name']} ${snapshot.data!['last name']}');
-                                }),
-                          Text(
-                            "${originalDate.year}/${originalDate.month}/${originalDate.day}",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    buildDecoration(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              data['body'],
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            if (data['image url'] != null ||
-                                data['video url'] != null)
-                              const SizedBox(
-                                height: 10,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.blue[50],
+        appBar: AppBar(
+          title: const Text('السؤال'),
+        ),
+        body: buildOfflineWidget(
+          onlineWidget: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('questions')
+                  .doc(widget.catId ?? expertCategory)
+                  .collection('questions')
+                  .doc(widget.questionId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                Map<String, dynamic> data = snapshot.data!.data()!;
+                DateTime originalDate = DateTime.parse(data['date']);
+                return SingleChildScrollView(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if(readID() == adminId)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: buildButton(
+                              onPressed: () => FirebaseFirestore.instance
+                                  .collection('questions')
+                                  .doc(widget.catId ?? expertCategory)
+                                  .collection('questions')
+                                  .doc(widget.questionId)
+                                  .update({'isHidden': !data['isHidden']}),
+                              label: '${data['isHidden'] ? 'إظهار' : 'إخفاء'} السؤال',
+                              context: context,
+                              buttonStyle: buildButtonStyle(
+                                false,
+                                color: !data['isHidden']
+                                    ? Colors.grey
+                                    : Colors.green[400],
                               ),
-                            //TODO: work on loadingBuilder of Image.network()
-                            if (data['image url'] != null)
-                              Image.network(data['image url']),
-                            if (data['video url'] != null)
-                              VideoPreviewer(url: data['video url']),
-                          ],
-                        ),
-                        color: Colors.grey[300]!),
-                    //Answer button and report button
-                    if (data['answerId'] == null &&
-                        data['reportId'] == null &&
-                        readID() != null&&readID()!=adminId)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          buildButton(
-                              onPressed: () => _showAnswerDialog(context),
-                              label: 'إجابة',
-                              context: context,
-                              isAnswer: true),
-                          buildButton(
-                              onPressed: () => _showReportDialog(context),
-                              label: 'تقديم تقرير',
-                              context: context,
                               isAnswer: false),
-                        ],
-                      ),
-
-                    // Answer Text
-                    if (data['answerId'] != null)
-                      buildResponse(docId: data['answerId'], isAnswer: true),
-                    if (data['reportId'] != null && readID() != null)
-                      buildResponse(docId: data['reportId'], isAnswer: false)
-                  ],
-                ),
-              ),
-            );
-          }),
+                        ),
+                        buildDecoration(
+                          color: Colors.blue[100]!,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                data['title'],
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              if (!(data['isAnonymous'] as bool))
+                                FutureBuilder(
+                                    future: FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(data['email'])
+                                        .get(),
+                                    builder: (_, snapshot) {
+                                      if (!snapshot.hasData) {
+                                        return const CircularProgressIndicator();
+                                      }
+                                      return Text(
+                                          '${snapshot.data!['first name']} ${snapshot.data!['last name']}');
+                                    }),
+                              Text(
+                                "${originalDate.year}/${originalDate.month}/${originalDate.day}",
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        buildDecoration(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  data['body'],
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                if (data['image url'] != null ||
+                                    data['video url'] != null)
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                //TODO: work on loadingBuilder of Image.network()
+                                if (data['image url'] != null)
+                                  Image.network(data['image url']),
+                                if (data['video url'] != null)
+                                  VideoPreviewer(url: data['video url']),
+                              ],
+                            ),
+                            color: Colors.grey[300]!),
+                        //Answer button and report button
+                        if (data['answerId'] == null &&
+                            data['reportId'] == null &&
+                            readID() != null&&readID()!=adminId)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              buildButton(
+                                  onPressed: () => _showAnswerDialog(context),
+                                  label: 'إجابة',
+                                  context: context,
+                                  isAnswer: true),
+                              buildButton(
+                                  onPressed: () => _showReportDialog(context),
+                                  label: 'تقديم تقرير',
+                                  context: context,
+                                  isAnswer: false),
+                            ],
+                          ),
+                
+                        // Answer Text
+                        if (data['answerId'] != null)
+                          buildResponse(docId: data['answerId'], isAnswer: true),
+                        if (data['reportId'] != null && readID() != null)
+                          buildResponse(docId: data['reportId'], isAnswer: false)
+                      ],
+                    ),
+                  ),
+                );
+              }),
+        ),
+      ),
     );
   }
 

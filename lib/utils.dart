@@ -3,6 +3,7 @@
 import 'package:ask_me2/local_data.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_offline/flutter_offline.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'pages/expert_pages/detailed_question.dart';
@@ -10,8 +11,8 @@ import 'pages/expert_pages/detailed_question.dart';
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
 const Color answerColor = Color.fromARGB(255, 165, 214, 167);
-const Color reportColor =Color.fromARGB(255,239,154,154);
-const Color hiddenQuestionColor = Color.fromARGB(255,189,189,189);
+const Color reportColor = Color.fromARGB(255, 239, 154, 154);
+const Color hiddenQuestionColor = Color.fromARGB(255, 189, 189, 189);
 String expertCategory = readID()![0];
 const String adminId = '0000';
 
@@ -113,10 +114,56 @@ ButtonStyle buildSelectButtonStyle() {
       backgroundColor: Colors.blue);
 }
 
+Widget buildOfflineWidget(
+    {required Widget onlineWidget, bool isOfflineWidgetWithScaffold = false}) {
+  return OfflineBuilder(
+    connectivityBuilder: (
+      BuildContext context,
+      ConnectivityResult connectivity,
+      Widget child,
+    ) {
+      final bool isConnected = connectivity != ConnectivityResult.none;
+
+      if (isConnected) {
+        return onlineWidget;
+      } else {
+        Widget offlineWidget = Center(
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'لا يوجد لديك اتصال بالإنترنت',
+                  style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.grey[800],
+                      fontWeight: FontWeight.w600),
+                ),
+                Image.asset('assets/no_connection.png')
+              ],
+            ),
+          ),
+        );
+        
+        return isOfflineWidgetWithScaffold
+            ? Scaffold(
+                body: offlineWidget,
+              )
+            : offlineWidget;
+      }
+    },
+    child: circularIndicator,
+  );
+}
+
 void showMyDialog(String message, BuildContext context,
     {Color? color, bool isButtonHidden = false}) {
   showDialog(
-    barrierDismissible: false,
+      barrierDismissible: false,
       context: context,
       builder: (ctx) => AlertDialog(
             content: Text(

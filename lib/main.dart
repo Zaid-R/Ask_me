@@ -9,6 +9,7 @@ import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_offline/flutter_offline.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -93,12 +94,13 @@ class MyApp extends StatelessWidget {
               ),
               useMaterial3: true,
             ),
-            home: readEmail() != null
-                ? const UserPage()
-                : readID() == adminId
-                    ? const AdminPage()
-                    : readID() != null
-                        ? const ExpertPage()
-                        : CategoriesPage()));
+            home: buildOfflineWidget(
+                onlineWidget: readEmail() != null
+                    ? const UserPage()
+                    : readID() == adminId
+                        ? const AdminPage()
+                        : readID() != null
+                            ? const ExpertPage()
+                            : CategoriesPage())));
   }
 }

@@ -19,7 +19,10 @@ class _ExpertListPageState extends State<ExpertListPage>
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 2, vsync: this,); // Number of tabs
+    tabController = TabController(
+      length: 2,
+      vsync: this,
+    ); // Number of tabs
   }
 
   @override
@@ -37,7 +40,9 @@ class _ExpertListPageState extends State<ExpertListPage>
             indicatorColor: themeColor,
             controller: tabController,
             tabs: const [
-              Tab(text: 'الخبراء الجدد',),
+              Tab(
+                text: 'الخبراء الجدد',
+              ),
               Tab(text: 'الخبراء المسجلين'),
             ],
           ),
@@ -124,74 +129,79 @@ class VerifiedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: TextField(
-          textAlign: TextAlign.right,
-          // controller: _searchController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            hintText: 'ابحث باستخدام معرف المستخدم',
+    return SafeArea(
+      child: buildOfflineWidget(
+        isOfflineWidgetWithScaffold: true,
+        onlineWidget: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            title: TextField(
+              textAlign: TextAlign.right,
+              // controller: _searchController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: 'ابحث باستخدام معرف المستخدم',
+              ),
+              onChanged: context.read<AdminProvider>().setSearchQuery,
+            ),
           ),
-          onChanged: context.read<AdminProvider>().setSearchQuery,
-        ),
-      ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('experts')
-            .doc('verified')
-            .collection('experts')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          body: StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('experts')
+                .doc('verified')
+                .collection('experts')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          var experts = snapshot.data!.docs;
+              var experts = snapshot.data!.docs;
 
-          return ListView.builder(
-            itemCount: experts.length,
-            itemBuilder: (context, index) {
-              var expert = experts[index];
-              // Check if the search query is empty or if the expert ID contains the search query
-              return Consumer<AdminProvider>(
-                builder: (_, provider, __) {
-                  if (provider.searchQuery.isEmpty ||
-                      expert.id.contains(provider.searchQuery)) {
-                    Map<String, dynamic> data = expert.data();
-                    return Card(
-                      color: data['isSuspended']
-                          ? Colors.red[200]
-                          : Colors.green[200],
-                      child: ListTile(
-                        title: Text(
-                          '${data['first name']} ${data['last name']}',
-                          textAlign: TextAlign.right,
-                        ),
-                        onTap: () async {
-                          String specialization =
-                              await _getSpecialization(expert.id[0]);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ExpertDetailsPage(
-                                    specialization: specialization,
-                                    isVerified: true,
-                                    expertId: expert.id)),
-                          );
-                        },
-                      ),
-                    );
-                  } else {
-                    return buildEmptyMessage(
-                        'لا يوجد خبير بهذا المعرف'); // Skip if it doesn't match the search
-                  }
+              return ListView.builder(
+                itemCount: experts.length,
+                itemBuilder: (context, index) {
+                  var expert = experts[index];
+                  // Check if the search query is empty or if the expert ID contains the search query
+                  return Consumer<AdminProvider>(
+                    builder: (_, provider, __) {
+                      if (provider.searchQuery.isEmpty ||
+                          expert.id.contains(provider.searchQuery)) {
+                        Map<String, dynamic> data = expert.data();
+                        return Card(
+                          color: data['isSuspended']
+                              ? Colors.red[200]
+                              : Colors.green[200],
+                          child: ListTile(
+                            title: Text(
+                              '${data['first name']} ${data['last name']}',
+                              textAlign: TextAlign.right,
+                            ),
+                            onTap: () async {
+                              String specialization =
+                                  await _getSpecialization(expert.id[0]);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ExpertDetailsPage(
+                                        specialization: specialization,
+                                        isVerified: true,
+                                        expertId: expert.id)),
+                              );
+                            },
+                          ),
+                        );
+                      } else {
+                        return buildEmptyMessage(
+                            'لا يوجد خبير بهذا المعرف'); // Skip if it doesn't match the search
+                      }
+                    },
+                  );
                 },
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }

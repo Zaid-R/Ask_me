@@ -281,87 +281,92 @@ class _AuthPageState extends State<AuthPage> {
       });
     }
 
-    return Scaffold(
-      appBar: buildAppBar(),
-      body: buildBackground(
-        //Use material to add elevation for form container
-        buildFormBackground(
-          screenWidth: screenWidth,
-          child: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  buildUserTypeSwitch(context),
-                  buildDivider(),
-                  buildFields(screenWidth),
-                  if (!isSignUp) buildForgotPasswordText(linkTextStyle),
-                  //Display this widgets when user want to create new account
-                  if (isSignUp && !auth.isExpert)
-                    buildSelectBirthDate(
-                        context, DateTime.now(), auth.birthDate),
-                  if (isSignUp && auth.isExpert)
-                    buildSpecializationRadioButtons(context),
-                  if (isSignUp && auth.isExpert)
-                    Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text(
-                            'آخر درجة علمية لك, يجب أن تكون شهادة بكالوريوس على الأقل إذا كنت تنوي دخول مجال علمي',
-                            maxLines: 3,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        auth.pickedFile == null
-                            ? ElevatedButton(
-                                onPressed: () async => context
-                                    .read<Auth>()
-                                    .setPickedFile(
-                                        await selectFile(true, context)),
-                                style: buildSelectButtonStyle(),
-                                child: Text(
-                                  'تحميل',
-                                  style: buildSelectButtonTextStyle(),
-                                ),
-                              )
-                            : Container(),
-                        auth.pickedFile == null
-                            ? Container()
-                            : Wrap(
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  Text(auth.pickedFile!.name),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    // Remove the selected file
-                                    onPressed: () => context
-                                        .read<Auth>()
-                                        .setPickedFile(null),
-                                  )
-                                ],
-                              )
-                      ],
-                    ),
-                  buildDivider(),
-                  !auth.isLoading
-                      ? Column(
+    return SafeArea(
+      child: buildOfflineWidget(
+        isOfflineWidgetWithScaffold: true,
+          onlineWidget: Scaffold(
+          appBar: buildAppBar(),
+          body: buildBackground(
+            //Use material to add elevation for form container
+            buildFormBackground(
+              screenWidth: screenWidth,
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      buildUserTypeSwitch(context),
+                      buildDivider(),
+                      buildFields(screenWidth),
+                      if (!isSignUp) buildForgotPasswordText(linkTextStyle),
+                      //Display this widgets when user want to create new account
+                      if (isSignUp && !auth.isExpert)
+                        buildSelectBirthDate(
+                            context, DateTime.now(), auth.birthDate),
+                      if (isSignUp && auth.isExpert)
+                        buildSpecializationRadioButtons(context),
+                      if (isSignUp && auth.isExpert)
+                        Column(
                           children: [
-                            buildSubmitButton(),
-                            SizedBox(
-                              height: screenHeight * 0.03,
+                            const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                'آخر درجة علمية لك, يجب أن تكون شهادة بكالوريوس على الأقل إذا كنت تنوي دخول مجال علمي',
+                                maxLines: 3,
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.w600),
+                              ),
                             ),
-                            buildSwitchAuthModeButton(linkTextStyle),
+                            auth.pickedFile == null
+                                ? ElevatedButton(
+                                    onPressed: () async => context
+                                        .read<Auth>()
+                                        .setPickedFile(
+                                            await selectFile(true, context)),
+                                    style: buildSelectButtonStyle(),
+                                    child: Text(
+                                      'تحميل',
+                                      style: buildSelectButtonTextStyle(),
+                                    ),
+                                  )
+                                : Container(),
+                            auth.pickedFile == null
+                                ? Container()
+                                : Wrap(
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      Text(auth.pickedFile!.name),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        // Remove the selected file
+                                        onPressed: () => context
+                                            .read<Auth>()
+                                            .setPickedFile(null),
+                                      )
+                                    ],
+                                  )
                           ],
-                        )
-                      : const CircularProgressIndicator(),
-                  const SizedBox(height: 20)
-                ],
+                        ),
+                      buildDivider(),
+                      !auth.isLoading
+                          ? Column(
+                              children: [
+                                buildSubmitButton(),
+                                SizedBox(
+                                  height: screenHeight * 0.03,
+                                ),
+                                buildSwitchAuthModeButton(linkTextStyle),
+                              ],
+                            )
+                          : const CircularProgressIndicator(),
+                      const SizedBox(height: 20)
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

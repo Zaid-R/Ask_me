@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../utils.dart';
 import '../../widgets/all_questions_stream.dart';
 
 class MyQuestions extends StatelessWidget {
@@ -9,7 +10,10 @@ class MyQuestions extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: AllQuestionsStream(isUser: true,),
+        body: buildOfflineWidget(
+            onlineWidget: AllQuestionsStream(
+          isUser: true,
+        )),
       ),
     );
   }

@@ -295,27 +295,31 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('الدرجة العلمية'),
-      ),
-      body: FutureBuilder(
-        future: _loadPDF(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData &&
-              snapshot.connectionState == ConnectionState.done) {
-            return PDFViewer(document: snapshot.data!);
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else {
-            print('error : ' + snapshot.error.toString());
-            return Center(
-              child: Text(snapshot.error.toString()),
-            );
-          }
-        },
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('الدرجة العلمية'),
+        ),
+        body: buildOfflineWidget(
+          onlineWidget: FutureBuilder(
+            future: _loadPDF(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.connectionState == ConnectionState.done) {
+                return PDFViewer(document: snapshot.data!);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                print('error : ' + snapshot.error.toString());
+                return Center(
+                  child: Text(snapshot.error.toString()),
+                );
+              }
+            },
+          ),
+        ),
       ),
     );
   }

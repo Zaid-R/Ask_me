@@ -40,52 +40,57 @@ class _MyDrawerState extends State<MyDrawer> {
   Widget build(BuildContext context) {
     int selectedPageId =
         context.select<AdminProvider, int>((provider) => provider.drawerId);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: themeColor,
-        title: Text(widget.listOfPages[selectedPageId].title),
-      ),
-      body: widget.listOfPages[selectedPageId].child,
-      drawer: Drawer(
-        child: Column(
-          children: [
-            buildDrawerHeader(),
-            Container(
-              padding: const EdgeInsets.only(
-                top: 15,
-              ),
-              child: SingleChildScrollView(
-                child: Column(children: [
-                  ...pages,
-                  buildMenuItemShape(() {
-                    removeData();
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AuthPage(),
-                        ));
-                  },
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.logout_rounded,
-                            size: 30,
-                            color: Colors.black,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            'تسجيل خروج',
-                            style: arabicFontStyle,
-                          )
-                        ],
-                      ))
-                ]),
-              ),
+    return SafeArea(
+      child:  buildOfflineWidget(
+        isOfflineWidgetWithScaffold: true,
+        onlineWidget: Scaffold(
+          appBar: AppBar(
+            backgroundColor: themeColor,
+            title: Text(widget.listOfPages[selectedPageId].title),
+          ),
+          body: widget.listOfPages[selectedPageId].child,
+          drawer: Drawer(
+            child: Column(
+              children: [
+                buildDrawerHeader(),
+                Container(
+                  padding: const EdgeInsets.only(
+                    top: 15,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(children: [
+                      ...pages,
+                      buildMenuItemShape(() {
+                        removeData();
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AuthPage(),
+                            ));
+                      },
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.logout_rounded,
+                                size: 30,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'تسجيل خروج',
+                                style: arabicFontStyle,
+                              )
+                            ],
+                          ))
+                    ]),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
