@@ -1,31 +1,70 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:ask_me2/local_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 import 'pages/expert_pages/detailed_question.dart';
 
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
 const Color answerColor = Color.fromARGB(255, 165, 214, 167);
 const Color reportColor = Color.fromARGB(255, 239, 154, 154);
-const Color hiddenQuestionColor = Color.fromARGB(255, 189, 189, 189);
-String expertCategory = readID()![0];
+const TextStyle infoStyle =
+    TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
 const String adminId = '0000';
+const Color hiddenQuestionColor = Color.fromARGB(255, 189, 189, 189);
+final expertsCollection = FirebaseFirestore.instance.collection('experts');
+final usersCollection = FirebaseFirestore.instance.collection('users');
+String expertCategory = readID()![0];
 
 Widget circularIndicator = const Center(
   child: CircularProgressIndicator(),
 );
 
-ButtonStyle buildButtonStyle(bool condition, {Color? color}) {
+ButtonStyle buildButtonStyle({required bool condition, Color? color}) {
   return ButtonStyle(
     elevation: const MaterialStatePropertyAll(10),
     backgroundColor: MaterialStatePropertyAll(
         color ?? (condition ? Colors.green[400] : Colors.red[600])),
   );
+}
+
+Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getUser(
+    String email, bool isExpert) async {
+  return (await (isExpert
+          ? expertsCollection.doc('verified').collection('experts').get()
+          : usersCollection.get()))
+      .docs
+      .where(
+        (element) =>
+            (isExpert ? element.data()['email'] as String : element.id) ==
+            email,
+      )
+      .firstOrNull;
+}
+
+void sendEmail(
+    {required String to, required String subject, required String text}) async {
+  final smtpServer = gmail('srrz0315@gmail.com', 'fpvopqdmvrbxiifd');
+
+  // Create the email message
+  final message = Message()
+    ..from = const Address('srrz0315@gmail.com', 'Sohaib Abo Garae')
+    ..recipients.add(to)
+    ..subject = subject
+    ..text = text;
+
+  try {
+    // Send the email
+    await send(message, smtpServer);
+  } catch (e) {
+    print('Error sending email: $e');
+  }
 }
 
 Center buildEmptyMessage(String text) {
@@ -51,7 +90,8 @@ Card buildQuestionTitleCard(
     required BuildContext context,
     required String questionId,
     String? catId,
-    Color? color}) {
+    Color? color,
+    bool isCategoryDisplayed = false}) {
   return Card(
     color: color ?? Colors.blue[100],
     child: ListTile(
@@ -67,6 +107,7 @@ Card buildQuestionTitleCard(
             builder: (context) => DetailedQuestionPage(
               questionId: questionId,
               catId: catId,
+              isCategoryDisplayed: isCategoryDisplayed,
             ),
           ),
         );
@@ -148,7 +189,7 @@ Widget buildOfflineWidget(
             ),
           ),
         );
-        
+
         return isOfflineWidgetWithScaffold
             ? Scaffold(
                 body: offlineWidget,

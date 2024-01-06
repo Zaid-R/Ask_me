@@ -9,6 +9,8 @@ import 'category.dart';
 class CategoriesPage extends StatelessWidget {
   CategoriesPage({super.key});
 
+
+  //TODO: move these photos to Firebase
   List<String> imagesPaths = [
     'assets/religion.jpeg',
     'assets/fixing.jpeg',
@@ -49,13 +51,8 @@ class CategoriesPage extends StatelessWidget {
                     : Container(),
                 appBar: readEmail() == null
                     ? AppBar(
-                        leadingWidth: 170,
                         title: const Text(
-                          'الأنواع',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20.0,
-                          ),
+                          'الرئيسية',
                         ),
                       )
                     : null,

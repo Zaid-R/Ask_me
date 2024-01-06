@@ -20,7 +20,7 @@ class _QuestionListState extends State<QuestionList> {
   @override
   Widget build(BuildContext context) {
     return readID() == adminId
-        ?AllQuestionsStream(isUser: false) 
+        ?const AllQuestionsStream(isUser: false) 
         : StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('questions')

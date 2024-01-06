@@ -12,7 +12,7 @@ import 'package:ask_me2/utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/user_provider.dart';
+import '../../providers/user_provider.dart';
 
 class QuestionFormPage extends StatelessWidget {
   final String categoryId;
@@ -245,7 +245,7 @@ class QuestionFormPage extends StatelessWidget {
                           .toList();
                   provider.setDates(dates);
                   provider.addToDates(DateTime.now().toString());
-                  user.update({'askedQuestions': provider.dates});
+                  user.update({'askedQuestions': provider.dateList});
 
                   _saveQuestionToDatabase(
                     context,

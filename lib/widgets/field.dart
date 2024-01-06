@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class Field extends StatefulWidget {
   final String title;
   final double width;
-  final String? Function(String?) validator;
+  final String? Function(String?)? validator;
   final Function(String?)? onSaved;
   final String? hint;
   final TextInputType? inputType;
@@ -42,7 +42,7 @@ class _FieldState extends State<Field> {
       child: TextFormField(
         cursorColor: Colors.grey[700],
         controller: widget.controller,
-        validator: widget.validator,
+        validator:widget.validator,
         onSaved: widget.onSaved,
         textDirection: ![
           'الايميل',

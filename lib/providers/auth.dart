@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-
 import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
@@ -18,9 +17,16 @@ enum AuthMode { logIn, signUp }
 class Auth extends ChangeNotifier {
   bool isLoading = false;
   bool isExpert = true;
+  bool isCodeSent = false;
+  bool emailNotExist = false;
+  bool isFrogotButtonLoading = false;
+  bool isCodePassed = false;
+  bool isSignUp = false;
+  String email = '';
+  String code = '';
   Map<String, dynamic> authData = {};
   int radioGroupValue = 0;
-  AuthMode authMode = AuthMode.logIn;
+  AuthMode _authMode = AuthMode.logIn;
   DateTime birthDate = DateTime.now();
   PlatformFile? pickedFile;
 
@@ -29,7 +35,42 @@ class Auth extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearAuthData(){
+  void setEmailNotExist(bool value){
+    emailNotExist = value;
+    notifyListeners();
+  }
+
+  void setIsCodePassed(bool value){
+    isCodePassed = value;
+    notifyListeners();
+  }
+
+  void setEmail(String value) {
+    email = value;
+    notifyListeners();
+  }
+
+  void setAuthData(Map<String,dynamic> data){
+    authData = data;
+    notifyListeners();
+  }
+
+  void setCode(String value) {
+    code = value;
+    notifyListeners();
+  }
+
+  void setIsFrogotButtonLoading(bool value) {
+    isFrogotButtonLoading = value;
+    notifyListeners();
+  }
+
+  void setIsCodeSent(bool value) {
+    isCodeSent = value;
+    notifyListeners();
+  }
+
+  void clearAuthData() {
     authData = {};
     notifyListeners();
   }
@@ -45,7 +86,13 @@ class Auth extends ChangeNotifier {
   }
 
   void switchAuthMode() {
-    authMode = authMode == AuthMode.logIn ? AuthMode.signUp : AuthMode.logIn;
+    if (_authMode == AuthMode.logIn) {
+      _authMode = AuthMode.signUp;
+      isSignUp = true;
+    } else {
+      _authMode = AuthMode.logIn;
+      isSignUp = false;
+    }
     notifyListeners();
   }
 
@@ -67,11 +114,9 @@ class Auth extends ChangeNotifier {
   //TODO: why you make return type bool or null ??
   void authenticate(BuildContext context) async {
     try {
-      bool isLogin = authMode == AuthMode.logIn;
+      bool isLogin = _authMode == AuthMode.logIn;
       //SignUp expert
       if (isExpert) {
-        var expertsCollection =
-            FirebaseFirestore.instance.collection('experts');
         if (!isLogin) {
           String? lastIdInTheField = (await expertsCollection
                   .doc('new comers')
@@ -137,7 +182,7 @@ class Auth extends ChangeNotifier {
                 return;
               } else if (isIdExist && isPasswordCorrect) {
                 writeID(authData['ID']);
-                writeName(expert['first name']+' '+ expert['last name']);
+                writeName(expert['first name'] + ' ' + expert['last name']);
                 clearAuthData();
                 Navigator.pushReplacement(
                     context,
@@ -173,22 +218,19 @@ class Auth extends ChangeNotifier {
           }
         }
       } else {
-        var usersCollection = FirebaseFirestore.instance.collection('users');
         if (isLogin) {
           //1. check email
-          Map<String, dynamic>? userData = (await usersCollection.get())
-              .docs
-              .where(
-                (element) => element['email'] == authData['email'],
-              )
-              .firstOrNull
-              ?.data();
+          final userData = await getUser(authData['email'],false);
           if (userData != null) {
             bool isPasswordCorrect =
                 userData['password'] == authData['password'];
-            if (isPasswordCorrect) {
+            if(userData['isSuspended']){
+              showMyDialog('حسابك معطل', context);
+              return;
+            }
+            else if (isPasswordCorrect) {
               writeEmial(authData['email']);
-              writeName(userData['first name'] +' '+userData['last name']);
+              writeName(userData['first name'] + ' ' + userData['last name']);
               clearAuthData();
               Navigator.pushReplacement(
                   context,
@@ -228,7 +270,7 @@ class Auth extends ChangeNotifier {
             }
 
             writeEmial(authData['email']);
-            writeName(authData['first name'] +' '+authData['last name']);
+            writeName(authData['first name'] + ' ' + authData['last name']);
             addAuthData(
                 'birth date', DateFormat('yyyy-MM-dd').format(birthDate));
             addAuthData('askedQuestions', []);

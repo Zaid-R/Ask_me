@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import '../utils.dart';
 
 class AllQuestionsStream extends StatelessWidget {
-  bool isUser;
-  AllQuestionsStream({
-    super.key,
-    required this.isUser,
-  });
+  final bool isUser;
+  final bool isReport;
+  const AllQuestionsStream(
+      {super.key, required this.isUser, this.isReport = false});
 
   @override
   Widget build(BuildContext context) {
+    //TODO: find a way to display empty message here when docs are empty
     return StreamBuilder(
         stream: FirebaseFirestore.instance.collection('questions').snapshots(),
         builder: (context, baseCollection) {
@@ -38,19 +38,29 @@ class AllQuestionsStream extends StatelessWidget {
                               if (!questionCollections.hasData) {
                                 return circularIndicator;
                               }
-
                               List<QueryDocumentSnapshot<Map<String, dynamic>>>
                                   docs = questionCollections.data!.docs;
 
-                              return Column(
-                                children: (isUser?docs.where((element) {
+                              if (isUser) {
+                                docs = docs.where((element) {
                                   final data = element.data();
-                                  return !data['isHidden']&&data['email']==readEmail();
-                                }) : docs).map((question) {
+                                  return !data['isHidden'] &&
+                                      data['email'] == readEmail();
+                                }).toList();
+                              } else if (isReport) {
+                                docs = docs
+                                    .where((element) =>
+                                        element.data()['reportId'] != null)
+                                    .toList();
+                              }
+
+                              return Column(
+                                children: docs.map((question) {
                                   Map<String, dynamic> data = question.data();
                                   return data.isEmpty
                                       ? Container()
                                       : buildQuestionTitleCard(
+                                          isCategoryDisplayed: true,
                                           title: data['title'],
                                           context: context,
                                           questionId: question.id,

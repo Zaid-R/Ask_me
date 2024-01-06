@@ -6,10 +6,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/user_provider.dart';
-import '../expert_pages/detailed_question.dart';
+import '../../providers/user_provider.dart';
 import 'question_form.dart';
 
+
+//TODO: make sure that StatefulWidget is used properly for every StatefulWidget page
 class Category extends StatefulWidget {
   final String id;
   final String title;
@@ -29,13 +30,12 @@ class _CategoryState extends State<Category> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: buildOfflineWidget(
-          isOfflineWidgetWithScaffold: true,
-          onlineWidget: Scaffold(
+        isOfflineWidgetWithScaffold: true,
+        onlineWidget: Scaffold(
           appBar: AppBar(
             title: Text(
               widget.title,
             ),
-        
           ),
           body: QuestionList(categoryId: widget.id),
           floatingActionButton: readEmail() == null
@@ -48,33 +48,37 @@ class _CategoryState extends State<Category> {
                           .snapshots(),
                       builder: (context, userSnapshot) {
                         if (!userSnapshot.hasData) {
-                          return const CircularProgressIndicator();
+                          return Container();
                         }
-        
-                        final dates =
-                            (userSnapshot.data!.get('askedQuestions') as List)
-                                .map((e) => e as String)
-                                .toList();
-                        if (dates.length == 3) {
-                          provider.setDates(dates);
-        
-                          dates.forEach((date) {
-                            if (DateTime.now()
-                                    .difference(DateTime.parse(date))
-                                    .inHours >=
-                                24) {
-                              provider.removeDate(date);
-                            }
-                          });
-        
-                          if (provider.dates.length < dates.length) {
-                            updateUser(provider.dates);
-                          }
-                        }
-                        bool isLimitExceeded = dates.length == 3;
+
                         return FloatingActionButton(
                           onPressed: () {
-                            if (isLimitExceeded) {
+                            final dates = (userSnapshot.data!
+                                    .get('askedQuestions') as List)
+                                .map((e) => e as String)
+                                .toList();
+                            final tempo = <String>[];
+                            if (dates.length == 3) {
+                              provider.setDates(dates);
+
+                              for (final date in provider.dateList) {
+                                if (DateTime.now()
+                                        .difference(DateTime.parse(date))
+                                        .inHours >=
+                                    24) {
+                                  tempo.add(date);
+                                }
+                              }
+
+                              if (tempo.isNotEmpty) {
+                                for (final element in tempo) {
+                                  provider.removeDate(element);
+                                }
+                                updateUser(provider.dateList);
+                              }
+                            }
+                            provider.setIsLimitExceeded(dates.length == 3);
+                            if (provider.isLimitExceeded) {
                               showMyDialog(
                                   'لقد قمت بإرسال ثلاثة أسئلة في هذا اليوم وهو الحد الأقصى',
                                   context);
@@ -87,11 +91,13 @@ class _CategoryState extends State<Category> {
                                           categoryId: widget.id,
                                         )));
                           },
-                          backgroundColor:
-                              isLimitExceeded ? Colors.grey : themeColor,
+                          backgroundColor: provider.isLimitExceeded
+                              ? Colors.grey
+                              : themeColor,
                           child: Icon(
-                            isLimitExceeded ? Icons.timer : Icons.add,
-                            color: isLimitExceeded ? Colors.black : null,
+                            provider.isLimitExceeded ? Icons.timer : Icons.add,
+                            color:
+                                provider.isLimitExceeded ? Colors.black : null,
                           ),
                         );
                       });

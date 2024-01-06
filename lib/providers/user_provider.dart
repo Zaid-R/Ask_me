@@ -7,12 +7,19 @@ class UserProvider extends ChangeNotifier {
   PlatformFile? video;
   bool isAnonymous = false;
   int drawerId = 0;
-  bool isPaused = false;
+  bool isPaused = true;
+  bool isLimitExceeded =false;
   bool isLoading = false;
-  List<String> dates = [];
+  List<String> dateList = [];
 
   void setIsPaused(bool value) {
     isPaused = value;
+    notifyListeners();
+  }
+
+
+  void setIsLimitExceeded(bool value) {
+    isLimitExceeded = value;
     notifyListeners();
   }
 
@@ -22,22 +29,22 @@ class UserProvider extends ChangeNotifier {
   }
 
   void addToDates(String value) {
-    dates.add(value);
+    dateList.add(value);
     notifyListeners();
   }
 
   void setDates(List<String> dates) {
-    this.dates = dates;
+    dateList = dates;
     notifyListeners();
   }
 
   void removeDate(String value) {
-    dates.remove(value);
+    dateList.remove(value);
     notifyListeners();
   }
 
   void clearDates() {
-    dates.clear();
+    dateList.clear();
     notifyListeners();
   }
 

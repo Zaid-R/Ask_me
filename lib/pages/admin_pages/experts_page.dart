@@ -1,6 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, must_be_immutable
 
-import 'package:ask_me2/models/admin_provider.dart';
+import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/pages/admin_pages/expert_details.dart';
 import 'package:ask_me2/utils.dart';
 import 'package:flutter/material.dart';
@@ -129,10 +129,9 @@ class VerifiedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //you don't have to use buildOfflineWidget() here since you reach this page from MyDrawer where buildOfflineWidget() is used
     return SafeArea(
-      child: buildOfflineWidget(
-        isOfflineWidgetWithScaffold: true,
-        onlineWidget: Scaffold(
+      child: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.white,
             title: TextField(
@@ -153,15 +152,15 @@ class VerifiedList extends StatelessWidget {
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
+                return circularIndicator;
               }
 
-              var experts = snapshot.data!.docs;
+              final experts = snapshot.data!.docs;
 
               return ListView.builder(
                 itemCount: experts.length,
                 itemBuilder: (context, index) {
-                  var expert = experts[index];
+                  final expert = experts[index];
                   // Check if the search query is empty or if the expert ID contains the search query
                   return Consumer<AdminProvider>(
                     builder: (_, provider, __) {
@@ -202,7 +201,6 @@ class VerifiedList extends StatelessWidget {
             },
           ),
         ),
-      ),
     );
   }
 }
