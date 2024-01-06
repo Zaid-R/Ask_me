@@ -35,7 +35,7 @@ class AnswerList extends StatelessWidget {
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
                         .where((question) =>
-                            question['answerId'] != null &&answerIds.contains(question['answerId']))
+                            question['answerId'] != null &&answerIds.contains(question['answerId'] as String))
                         .toList();
 
                 return docs.isEmpty

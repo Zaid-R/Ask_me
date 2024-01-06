@@ -35,7 +35,7 @@ class ReprotList extends StatelessWidget {
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
                         .where((question) =>
-                            question['reportId'] != null &&reportIds.contains(question['reportId']))
+                            question['reportId'] != null &&reportIds.contains(question['reportId'] as String))
                         .toList();
 
                 return docs.isEmpty

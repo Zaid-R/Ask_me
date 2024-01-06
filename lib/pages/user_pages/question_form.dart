@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/user_provider.dart';
+import '../../widgets/offlineWidget.dart';
 
 class QuestionFormPage extends StatelessWidget {
   final String categoryId;
@@ -33,7 +34,7 @@ class QuestionFormPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('كتابة سؤال جديد'),
         ),
-        body: buildOfflineWidget(
+        body: OfflineWidget(
           onlineWidget: Container(
             padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(

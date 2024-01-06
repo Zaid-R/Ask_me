@@ -50,15 +50,15 @@ class _ExpertListPageState extends State<ExpertListPage>
         body: TabBarView(
           controller: tabController,
           children: const [
-            NewComerList(), // Your first page widget
-            VerifiedList(), // Your second page widget
+            _NewComerList(), // Your first page widget
+            _VerifiedList(), // Your second page widget
           ],
         ));
   }
 }
 
-class NewComerList extends StatelessWidget {
-  const NewComerList({super.key});
+class _NewComerList extends StatelessWidget {
+  const _NewComerList({super.key});
   @override
   Widget build(BuildContext context) {
     bool isLoading =
@@ -124,83 +124,84 @@ Future<String> _getSpecialization(String specId) async {
       .data()!['name'];
 }
 
-class VerifiedList extends StatelessWidget {
-  const VerifiedList({super.key});
+class _VerifiedList extends StatelessWidget {
+  const _VerifiedList({super.key});
 
   @override
   Widget build(BuildContext context) {
     //you don't have to use buildOfflineWidget() here since you reach this page from MyDrawer where buildOfflineWidget() is used
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            title: TextField(
-              textAlign: TextAlign.right,
-              // controller: _searchController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: 'ابحث باستخدام معرف المستخدم',
-              ),
-              onChanged: context.read<AdminProvider>().setSearchQuery,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: TextField(
+            textAlign: TextAlign.right,
+            // controller: _searchController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: 'ابحث باستخدام معرف المستخدم',
             ),
-          ),
-          body: StreamBuilder(
-            stream: FirebaseFirestore.instance
-                .collection('experts')
-                .doc('verified')
-                .collection('experts')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return circularIndicator;
-              }
-
-              final experts = snapshot.data!.docs;
-
-              return ListView.builder(
-                itemCount: experts.length,
-                itemBuilder: (context, index) {
-                  final expert = experts[index];
-                  // Check if the search query is empty or if the expert ID contains the search query
-                  return Consumer<AdminProvider>(
-                    builder: (_, provider, __) {
-                      if (provider.searchQuery.isEmpty ||
-                          expert.id.contains(provider.searchQuery)) {
-                        Map<String, dynamic> data = expert.data();
-                        return Card(
-                          color: data['isSuspended']
-                              ? Colors.red[200]
-                              : Colors.green[200],
-                          child: ListTile(
-                            title: Text(
-                              '${data['first name']} ${data['last name']}',
-                              textAlign: TextAlign.right,
-                            ),
-                            onTap: () async {
-                              String specialization =
-                                  await _getSpecialization(expert.id[0]);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ExpertDetailsPage(
-                                        specialization: specialization,
-                                        isVerified: true,
-                                        expertId: expert.id)),
-                              );
-                            },
-                          ),
-                        );
-                      } else {
-                        return buildEmptyMessage(
-                            'لا يوجد خبير بهذا المعرف'); // Skip if it doesn't match the search
-                      }
-                    },
-                  );
-                },
-              );
-            },
+            onChanged: context.read<AdminProvider>().setSearchQuery,
           ),
         ),
+        body: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('experts')
+              .doc('verified')
+              .collection('experts')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return circularIndicator;
+            }
+
+            return Consumer<AdminProvider>(
+              builder: (_, provider, __) {
+                final experts = snapshot.data!.docs
+                    .where((element) =>
+                        provider.searchQuery.isEmpty ||
+                        element.id.contains(provider.searchQuery))
+                    .toList();
+                return experts.isEmpty
+                    ? buildEmptyMessage('لا يوجد خبير بهذا المعرف')
+                    : ListView.builder(
+                        itemCount: experts.length,
+                        itemBuilder: (context, index) {
+                          final expert = experts[index];
+                          // Check if the search query is empty or if the expert ID contains the search query
+
+                          Map<String, dynamic> data = expert.data();
+                          return Card(
+                            color: data['isSuspended']
+                                ? Colors.red[200]
+                                : Colors.green[200],
+                            child: ListTile(
+                              title: Text(
+                                '${data['first name']} ${data['last name']}',
+                                textAlign: TextAlign.right,
+                              ),
+                              onTap: () async {
+                                String specialization =
+                                    await _getSpecialization(expert.id[0]);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      //TODO: you can pass expert as a stream instead of isVerified and expertId, and shortcuting the code inside  ExpertDetailsPage
+                                      builder: (context) => ExpertDetailsPage(
+                                          specialization: specialization,
+                                          isVerified: true,
+                                          expertId: expert.id)),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }

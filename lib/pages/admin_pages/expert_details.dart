@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:advance_pdf_viewer2/advance_pdf_viewer.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/offlineWidget.dart';
+
 CollectionReference<Map<String, dynamic>> _allExpertsCollection =
     FirebaseFirestore.instance.collection('experts');
 
@@ -277,7 +279,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
         appBar: AppBar(
           title: const Text('الدرجة العلمية'),
         ),
-        body: buildOfflineWidget(
+        body: OfflineWidget(
           onlineWidget: FutureBuilder(
             future: _loadPDF(),
             builder: (context, snapshot) {

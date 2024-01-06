@@ -6,38 +6,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../local_data.dart';
+import '../../widgets/offlineWidget.dart';
 import '../../widgets/video_preview.dart';
 
 class DetailedQuestionPage extends StatelessWidget {
   final String questionId;
   final String? catId;
   final bool isCategoryDisplayed;
-
-  const DetailedQuestionPage(
+  final GlobalKey<FormState> _answerFormKey;
+  DetailedQuestionPage(
       {super.key,
       required this.questionId,
       required this.catId,
-      this.isCategoryDisplayed = false});
+      this.isCategoryDisplayed = false})
+      : _answerFormKey = GlobalKey<FormState>();
 
-  @override
-  Widget build(BuildContext context) {
-    final answerFormKey = GlobalKey<FormState>();
+  Widget buildButton(
+      {required Function()? onPressed,
+      required String label,
+      required BuildContext context,
+      required bool isAnswer,
+      ButtonStyle? buttonStyle}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: ElevatedButton(
+        style: buttonStyle ?? buildButtonStyle(condition: isAnswer),
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 15),
+        ),
+      ),
+    );
+  }
 
-    final reportFromKey = GlobalKey<FormState>();
+  // Function to submit the answer
+  void submitAnswer(BuildContext context, String answerText,
+      {bool isEdit = false}) async {
+    if (!_answerFormKey.currentState!.validate()) return;
+    _answerFormKey.currentState!.save();
+    final answersCollection = FirebaseFirestore.instance.collection('answers');
+    // Document ID for the answer
+    String answerDocId = '$expertCategory$questionId';
 
-    final stream = FirebaseFirestore.instance
-        .collection('questions')
-        .doc(catId ?? expertCategory)
-        .collection('questions')
-        .doc(questionId);
-
-    // Function to submit the answer
-    void submitAnswer(BuildContext context, String answerText) async {
-      if (!answerFormKey.currentState!.validate()) return;
-      answerFormKey.currentState!.save();
-      // Document ID for the answer
-      String answerDocId = '$expertCategory$questionId';
-
+    if (isEdit) {
+      await answersCollection.doc(answerDocId).update({'body': answerText});
+    } else {
       // Data for the answer
       Map<String, dynamic> answerData = {
         'questionId': questionId,
@@ -45,14 +59,10 @@ class DetailedQuestionPage extends StatelessWidget {
         'date': DateTime.now().toString().split('.')[0],
         'body': answerText,
       };
-
       // Add the answer to the "answers" collection
-      await FirebaseFirestore.instance
-          .collection('answers')
-          .doc(answerDocId)
-          .set(answerData);
+      await answersCollection.doc(answerDocId).set(answerData);
 
-      // Update the "isAnswered" field for the question
+      // Update the "answerId" field for the question
       await FirebaseFirestore.instance
           .collection('questions')
           .doc(expertCategory)
@@ -60,6 +70,86 @@ class DetailedQuestionPage extends StatelessWidget {
           .doc(questionId)
           .update({'answerId': answerDocId});
     }
+  }
+
+  // Function to show the answer dialog
+  void showAnswerDialog(BuildContext context, {bool isEdit = false,String body = ''}) {
+    TextEditingController answerController = TextEditingController(text: body);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            isEdit ? 'تعديل الجواب' : 'كتابة الجواب',
+            textAlign: TextAlign.end,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Text Field
+              Form(
+                key: _answerFormKey,
+                child: TextFormField(
+                  controller: answerController,
+                  textAlign: TextAlign.end,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 5,
+                  validator: (value) {
+                    if (value != null && value.trim().isEmpty) {
+                      return 'لا يمكن أن يكون الجواب فارغاً';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              // Submit Button
+
+              Consumer<AdminProvider>(builder: (_, provider, __) {
+                return provider.isLoading
+                    ? const CircularProgressIndicator()
+                    : buildButton(
+                        onPressed: () {
+                          if (answerController.text.trim().isNotEmpty) {
+                            context.read<AdminProvider>().setIsLoading(true);
+                            submitAnswer(context, answerController.text.trim(),
+                                isEdit: isEdit);
+                            context.read<AdminProvider>().setIsLoading(false);
+                            Navigator.pop(context);
+                            // Show a snack bar
+                            //TODO: put snackbar in method and then use it twice
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isEdit
+                                    ? 'تم تعديل الإجابة'
+                                    : 'تم إرسال الإجابة',style: const TextStyle(color: Colors.black)),
+                                    backgroundColor: Colors.green[400],
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
+                        label: isEdit ? 'تعديل' : 'إرسال',
+                        context: context,
+                        isAnswer: true);
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reportFromKey = GlobalKey<FormState>();
+
+    final stream = FirebaseFirestore.instance
+        .collection('questions')
+        .doc(catId ?? expertCategory)
+        .collection('questions')
+        .doc(questionId);
 
     void submitReport(BuildContext context, String reportText) async {
       if (!reportFromKey.currentState!.validate()) return;
@@ -109,54 +199,60 @@ class DetailedQuestionPage extends StatelessWidget {
               child: child));
     }
 
-    Widget buildButton(
-        {required Function()? onPressed,
-        required String label,
-        required BuildContext context,
-        required bool isAnswer,
-        ButtonStyle? buttonStyle}) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: ElevatedButton(
-          style: buttonStyle ?? buildButtonStyle(condition:isAnswer),
-          onPressed: onPressed,
-          child: Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 15),
-          ),
-        ),
-      );
-    }
-
     Padding buildResponse({required String docId, required bool isAnswer}) {
       return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: buildDecoration(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  isAnswer ? 'الجواب' : 'التقرير',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                FutureBuilder(
-                    future: FirebaseFirestore.instance
-                        .collection(isAnswer ? 'answers' : 'reports')
-                        .doc(docId)
-                        .get(),
-                    builder: (_, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return Text(snapshot.data!.data()!['body'],textDirection: TextDirection.rtl,);
-                    }),
-              ],
-            ),
-            color: isAnswer ? Colors.green[100]! : Colors.red[100]!),
-      );
+          padding: const EdgeInsets.only(top: 10),
+          child: buildDecoration(
+            color: isAnswer ? Colors.green[100]! : Colors.red[100]!,
+            child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection(isAnswer ? 'answers' : 'reports')
+                    .doc(docId)
+                    .snapshots(),
+                builder: (_, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final body = snapshot.data!.data()!['body'] as String ;
+
+                  return Stack(
+                    children: [
+                      //the answer
+                      Container(
+                        alignment: Alignment.topRight,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              isAnswer ? 'الجواب' : 'التقرير',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.end,
+                            ),
+                            Text(
+                              body,
+                              textDirection: TextDirection.rtl,
+                              textAlign: TextAlign.end,
+                            )
+                          ],
+                        ),
+                      ),
+                      //Edit button
+                      if(readID()!=adminId)
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () =>
+                              showAnswerDialog(context, isEdit: true,body: body),
+                        ),
+                      )
+                    ],
+                  );
+                }),
+          ));
     }
 
     void showReportDialog(BuildContext context) {
@@ -204,8 +300,10 @@ class DetailedQuestionPage extends StatelessWidget {
 
                               // Show a snack bar
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('تم تقديم التقرير بنجاح'),
+                                 SnackBar(
+                                  content: const Text('تم تقديم التقرير بنجاح',style: TextStyle(color: Colors.black),),
+                                  backgroundColor: Colors.green[400],
+                                  duration: const Duration(seconds: 1),
                                 ),
                               );
                             }
@@ -221,77 +319,13 @@ class DetailedQuestionPage extends StatelessWidget {
       );
     }
 
-    // Function to show the answer dialog
-    void showAnswerDialog(BuildContext context) {
-      TextEditingController answerController = TextEditingController();
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text(
-              'كتابة الجواب',
-              textAlign: TextAlign.end,
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Text Field
-                Form(
-                  key: answerFormKey,
-                  child: TextFormField(
-                    controller: answerController,
-                    textAlign: TextAlign.end,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 5,
-                    validator: (value) {
-                      if (value != null && value.trim().isEmpty) {
-                        return 'لا يمكن أن يكون الجواب فارغاً';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                // Submit Button
-
-                Consumer<AdminProvider>(builder: (_, provider, __) {
-                  return provider.isLoading
-                      ? const CircularProgressIndicator()
-                      : buildButton(
-                          onPressed: () {
-                            if (answerController.text.trim().isNotEmpty) {
-                              context.read<AdminProvider>().setIsLoading(true);
-                              submitAnswer(
-                                  context, answerController.text.trim());
-                              context.read<AdminProvider>().setIsLoading(false);
-                              Navigator.pop(context);
-                              // Show a snack bar
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('تم إرسال الإجابة'),
-                                ),
-                              );
-                            }
-                          },
-                          label: 'إرسال',
-                          context: context,
-                          isAnswer: true);
-                }),
-              ],
-            ),
-          );
-        },
-      );
-    }
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.blue[50],
         appBar: AppBar(
           title: const Text('السؤال'),
         ),
-        body: buildOfflineWidget(
+        body: OfflineWidget(
           onlineWidget: StreamBuilder(
               stream: stream.snapshots(),
               builder: (context, snapshot) {

@@ -3,10 +3,11 @@ import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/models/menu_item.dart';
 import 'package:ask_me2/pages/auth_page.dart';
 import 'package:ask_me2/utils.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+import 'widgets/offlineWidget.dart';
 
 class MyDrawer extends StatefulWidget {
   final List<MenuItem> listOfPages;
@@ -41,8 +42,8 @@ class _MyDrawerState extends State<MyDrawer> {
     int selectedPageId =
         context.select<AdminProvider, int>((provider) => provider.drawerId);
     return SafeArea(
-      child:  buildOfflineWidget(
-        isOfflineWidgetWithScaffold: true,
+      child:  OfflineWidget(
+       // isOfflineWidgetWithScaffold: true,
         onlineWidget: Scaffold(
           appBar: AppBar(
             backgroundColor: themeColor,

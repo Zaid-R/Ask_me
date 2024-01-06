@@ -7,7 +7,6 @@ import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -15,6 +14,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/user_provider.dart';
 import 'utils.dart';
+import 'widgets/offlineWidget.dart';
 
 class NoThumbScrollBehavior extends ScrollBehavior {
   @override
@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
               ),
               useMaterial3: true,
             ),
-            home: buildOfflineWidget(
+            home: OfflineWidget(
                 onlineWidget: readEmail() != null
                     ? const UserPage()
                     : readID() == adminId

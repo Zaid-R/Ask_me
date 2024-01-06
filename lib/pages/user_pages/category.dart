@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/user_provider.dart';
+import '../../widgets/offlineWidget.dart';
 import 'question_form.dart';
 
 
@@ -29,8 +30,8 @@ class _CategoryState extends State<Category> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: buildOfflineWidget(
-        isOfflineWidgetWithScaffold: true,
+      child: OfflineWidget(
+        //isOfflineWidgetWithScaffold: true,
         onlineWidget: Scaffold(
           appBar: AppBar(
             title: Text(

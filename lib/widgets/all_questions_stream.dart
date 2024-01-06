@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 
 import '../utils.dart';
 
-class AllQuestionsStream extends StatelessWidget {
+class AllQuestionsStream extends StatefulWidget {
   final bool isUser;
   final bool isReport;
-  const AllQuestionsStream(
-      {super.key, required this.isUser, this.isReport = false});
+  const AllQuestionsStream({
+    super.key,
+    required this.isUser,
+    this.isReport = false,
+  });
 
+  @override
+  State<AllQuestionsStream> createState() => _AllQuestionsStreamState();
+}
+
+class _AllQuestionsStreamState extends State<AllQuestionsStream> {
   @override
   Widget build(BuildContext context) {
     //TODO: find a way to display empty message here when docs are empty
@@ -41,18 +49,18 @@ class AllQuestionsStream extends StatelessWidget {
                               List<QueryDocumentSnapshot<Map<String, dynamic>>>
                                   docs = questionCollections.data!.docs;
 
-                              if (isUser) {
-                                docs = docs.where((element) {
-                                  final data = element.data();
-                                  return !data['isHidden'] &&
-                                      data['email'] == readEmail();
-                                }).toList();
-                              } else if (isReport) {
-                                docs = docs
-                                    .where((element) =>
-                                        element.data()['reportId'] != null)
-                                    .toList();
-                              }
+                                if (widget.isUser) {
+                                  docs = docs.where((element) {
+                                    final data = element.data();
+                                    return !data['isHidden'] &&
+                                        (data['email'] as String) == readEmail();
+                                  }).toList();
+                                } else if (widget.isReport) {
+                                  docs = docs
+                                      .where((element) =>
+                                          element.data()['reportId']  != null)
+                                      .toList();
+                                }
 
                               return Column(
                                 children: docs.map((question) {

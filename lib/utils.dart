@@ -4,7 +4,6 @@ import 'package:ask_me2/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_offline/flutter_offline.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
@@ -153,52 +152,6 @@ ButtonStyle buildSelectButtonStyle() {
       side: const BorderSide(width: 2, color: buttonColor),
       elevation: 3,
       backgroundColor: Colors.blue);
-}
-
-Widget buildOfflineWidget(
-    {required Widget onlineWidget, bool isOfflineWidgetWithScaffold = false}) {
-  return OfflineBuilder(
-    connectivityBuilder: (
-      BuildContext context,
-      ConnectivityResult connectivity,
-      Widget child,
-    ) {
-      final bool isConnected = connectivity != ConnectivityResult.none;
-
-      if (isConnected) {
-        return onlineWidget;
-      } else {
-        Widget offlineWidget = Center(
-          child: Container(
-            color: Colors.white,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  'لا يوجد لديك اتصال بالإنترنت',
-                  style: TextStyle(
-                      fontSize: 22,
-                      color: Colors.grey[800],
-                      fontWeight: FontWeight.w600),
-                ),
-                Image.asset('assets/no_connection.png')
-              ],
-            ),
-          ),
-        );
-
-        return isOfflineWidgetWithScaffold
-            ? Scaffold(
-                body: offlineWidget,
-              )
-            : offlineWidget;
-      }
-    },
-    child: circularIndicator,
-  );
 }
 
 void showMyDialog(String message, BuildContext context,

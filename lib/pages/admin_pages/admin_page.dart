@@ -35,7 +35,7 @@ class _AdminPageState extends State<AdminPage> {
           title: 'البلاغات',
           icon: Icons.report_outlined,
           child: const AllQuestionsStream(
-            isUser: true,
+            isUser: false,
             isReport: true,
           )),
       MenuItem(

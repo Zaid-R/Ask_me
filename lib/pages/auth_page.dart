@@ -4,6 +4,7 @@ import 'package:ask_me2/local_data.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
+import 'package:ask_me2/widgets/offlineWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ask_me2/utils.dart';
@@ -756,8 +757,8 @@ class _AuthPageState extends State<AuthPage> {
     }
 
     return SafeArea(
-      child: buildOfflineWidget(
-        isOfflineWidgetWithScaffold: true,
+      child: OfflineWidget(
+        //isOfflineWidgetWithScaffold: true,
         onlineWidget: Scaffold(
           appBar: buildAppBar(),
           body: buildBackground(

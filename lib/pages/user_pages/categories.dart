@@ -4,6 +4,7 @@ import 'package:ask_me2/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/offlineWidget.dart';
 import 'category.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -11,7 +12,7 @@ class CategoriesPage extends StatelessWidget {
 
 
   //TODO: move these photos to Firebase
-  List<String> imagesPaths = [
+  final List<String> imagesPaths = [
     'assets/religion.jpeg',
     'assets/fixing.jpeg',
     'assets/mechanic.jpeg',
@@ -23,8 +24,8 @@ class CategoriesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
           return SafeArea(
-            child: buildOfflineWidget(
-              isOfflineWidgetWithScaffold: true,
+            child: OfflineWidget(
+              //isOfflineWidgetWithScaffold: true,
           onlineWidget: Scaffold(
                 resizeToAvoidBottomInset: false,
                 floatingActionButton: readEmail() == null
