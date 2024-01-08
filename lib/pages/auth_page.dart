@@ -9,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ask_me2/utils/tools.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
 import 'package:random_string/random_string.dart';
 import '../providers/auth.dart';
 import 'package:provider/provider.dart';
