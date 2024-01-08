@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/widgets/all_questions_stream.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../utils.dart';
+import '../utils/tools.dart';
 
 class QuestionList extends StatefulWidget {
   final String? categoryId;

@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:ask_me2/providers/admin_provider.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../local_data.dart';
+import '../../utils/local_data.dart';
 import '../../widgets/offlineWidget.dart';
 import '../../widgets/video_preview.dart';
 
@@ -239,8 +239,9 @@ class DetailedQuestionPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      //Edit button
-                      if(readID()!=adminId)
+                      
+                      //show edit icon if the one who is see the question is expert
+                      if(readID()!=adminId&&readID()!=null)
                       Container(
                         alignment: Alignment.topLeft,
                         child: IconButton(

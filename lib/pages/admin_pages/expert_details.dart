@@ -4,13 +4,14 @@
 import 'dart:io';
 
 import 'package:ask_me2/providers/admin_provider.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:advance_pdf_viewer2/advance_pdf_viewer.dart';
 import 'package:provider/provider.dart';
 
+import '../../utils/transition.dart';
 import '../../widgets/offlineWidget.dart';
 
 CollectionReference<Map<String, dynamic>> _allExpertsCollection =
@@ -74,7 +75,7 @@ class ExpertDetailsPage extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CustomPageRoute(
                             builder: (context) =>
                                 PDFViewerPage(pdfUrl: data['degree url']),
                           ),

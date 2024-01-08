@@ -1,9 +1,10 @@
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/pages/auth_page.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/transition.dart';
 import '../../widgets/offlineWidget.dart';
 import 'category.dart';
 
@@ -25,7 +26,6 @@ class CategoriesPage extends StatelessWidget {
   Widget build(BuildContext context) {
           return SafeArea(
             child: OfflineWidget(
-              //isOfflineWidgetWithScaffold: true,
           onlineWidget: Scaffold(
                 resizeToAvoidBottomInset: false,
                 floatingActionButton: readEmail() == null
@@ -45,7 +45,7 @@ class CategoriesPage extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(
+                              CustomPageRoute(
                                   builder: (_) => const AuthPage()));
                         },
                       )
@@ -67,7 +67,7 @@ class CategoriesPage extends StatelessWidget {
                         child: CircularProgressIndicator(),
                       );
                     } 
-                      var titles = snapshot.data!.docs;
+                      final titles = snapshot.data!.docs;
                       return Padding(
                         padding: const EdgeInsets.all(10),
                         child: GridView.builder(
@@ -77,15 +77,15 @@ class CategoriesPage extends StatelessWidget {
                             crossAxisSpacing: 8.0,
                             mainAxisSpacing: 8.0,
                           ),
-                          itemCount: 6,
+                          itemCount: titles.length,
                           itemBuilder: (context, index) {
-                            var title = titles[index].data()['name'];
+                            final title = titles[index].data()['name'];
                             return GestureDetector(
                               onTap: () {
                                 // Navigate to a different page when an item is clicked
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  CustomPageRoute(
                                     builder: (context) => Category(
                                       id: titles[index].id,
                                       title: title,

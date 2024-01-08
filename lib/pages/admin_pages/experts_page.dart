@@ -2,10 +2,12 @@
 
 import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/pages/admin_pages/expert_details.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+
+import '../../utils/transition.dart';
 
 class ExpertListPage extends StatefulWidget {
   @override
@@ -99,7 +101,7 @@ class _NewComerList extends StatelessWidget {
                               context.read<AdminProvider>().setIsLoading(false);
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                CustomPageRoute(
                                   builder: (_) => ExpertDetailsPage(
                                       specialization: specialization,
                                       isVerified: false,
@@ -185,7 +187,7 @@ class _VerifiedList extends StatelessWidget {
                                     await _getSpecialization(expert.id[0]);
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  CustomPageRoute(
                                       //TODO: you can pass expert as a stream instead of isVerified and expertId, and shortcuting the code inside  ExpertDetailsPage
                                       builder: (context) => ExpertDetailsPage(
                                           specialization: specialization,

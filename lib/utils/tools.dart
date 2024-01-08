@@ -1,13 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import 'pages/expert_pages/detailed_question.dart';
+import '../pages/expert_pages/detailed_question.dart';
 
 const Color themeColor = Color.fromRGBO(17, 138, 178, 1);
 const Color buttonColor = Color.fromRGBO(178, 57, 17, 1);
@@ -113,6 +113,18 @@ Card buildQuestionTitleCard(
       },
     ),
   );
+}
+
+void displaySnackBar(BuildContext context,
+    {required String text, Color? snackBarColor}) {
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        text,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        textDirection: TextDirection.rtl,
+      ),
+      backgroundColor: snackBarColor 
+      ));
 }
 
 Future<PlatformFile?> selectFile(bool isPdf, BuildContext context) async {

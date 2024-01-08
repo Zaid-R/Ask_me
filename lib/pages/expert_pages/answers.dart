@@ -1,8 +1,8 @@
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../utils.dart';
+import '../../utils/tools.dart';
 
 class AnswerList extends StatelessWidget {
   const AnswerList({super.key});

@@ -1,14 +1,14 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/widgets/video_preview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 

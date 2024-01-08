@@ -1,10 +1,10 @@
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../utils.dart';
+import '../utils/tools.dart';
 
-class AllQuestionsStream extends StatefulWidget {
+class AllQuestionsStream extends StatelessWidget {
   final bool isUser;
   final bool isReport;
   const AllQuestionsStream({
@@ -13,11 +13,6 @@ class AllQuestionsStream extends StatefulWidget {
     this.isReport = false,
   });
 
-  @override
-  State<AllQuestionsStream> createState() => _AllQuestionsStreamState();
-}
-
-class _AllQuestionsStreamState extends State<AllQuestionsStream> {
   @override
   Widget build(BuildContext context) {
     //TODO: find a way to display empty message here when docs are empty
@@ -49,13 +44,13 @@ class _AllQuestionsStreamState extends State<AllQuestionsStream> {
                               List<QueryDocumentSnapshot<Map<String, dynamic>>>
                                   docs = questionCollections.data!.docs;
 
-                                if (widget.isUser) {
+                                if (isUser) {
                                   docs = docs.where((element) {
                                     final data = element.data();
                                     return !data['isHidden'] &&
                                         (data['email'] as String) == readEmail();
                                   }).toList();
-                                } else if (widget.isReport) {
+                                } else if (isReport) {
                                   docs = docs
                                       .where((element) =>
                                           element.data()['reportId']  != null)

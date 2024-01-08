@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 
-import '../utils.dart';
+import '../utils/tools.dart';
 
 class OfflineWidget extends StatefulWidget {
   final Widget onlineWidget;

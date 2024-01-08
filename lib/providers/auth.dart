@@ -1,16 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/pages/admin_pages/admin_page.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'dart:io';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../utils/transition.dart';
 
 enum AuthMode { logIn, signUp }
 
@@ -32,6 +34,14 @@ class Auth extends ChangeNotifier {
 
   void addAuthData(String key, dynamic value) {
     authData[key] = value;
+    notifyListeners();
+  }
+
+  void clearForgotPasswordData(){
+    isCodePassed = false;
+    isCodeSent = false;
+    isFrogotButtonLoading = false;
+    emailNotExist =false;
     notifyListeners();
   }
 
@@ -186,7 +196,7 @@ class Auth extends ChangeNotifier {
                 clearAuthData();
                 Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
+                    CustomPageRoute(
                       builder: (_) => const ExpertPage(),
                     ));
               }
@@ -208,7 +218,7 @@ class Auth extends ChangeNotifier {
               clearAuthData();
               Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
+                  CustomPageRoute(
                     builder: (_) => const AdminPage(),
                   ));
             } else {
@@ -234,7 +244,7 @@ class Auth extends ChangeNotifier {
               clearAuthData();
               Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
+                  CustomPageRoute(
                     builder: (_) => const UserPage(),
                   ));
             } else {
@@ -278,7 +288,7 @@ class Auth extends ChangeNotifier {
             clearAuthData();
             Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
+                CustomPageRoute(
                   builder: (_) => const UserPage(),
                 ));
           }

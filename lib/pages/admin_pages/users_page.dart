@@ -1,7 +1,9 @@
 import 'package:ask_me2/pages/admin_pages/user_details.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../../utils/transition.dart';
 
 class UserList extends StatelessWidget {
   const UserList({super.key});
@@ -37,7 +39,7 @@ class UserList extends StatelessWidget {
                         onTap: () async {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            CustomPageRoute(
                                 builder: (context) => UserDetailsPage(
                                     userStream: user.reference)),
                           );

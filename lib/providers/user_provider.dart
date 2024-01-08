@@ -6,9 +6,10 @@ class UserProvider extends ChangeNotifier {
   XFile? image;
   PlatformFile? video;
   bool isAnonymous = false;
+  bool isSnackBarShowing = false;
   int drawerId = 0;
   bool isPaused = true;
-  bool isLimitExceeded =false;
+  bool isLimitExceeded = false;
   bool isLoading = false;
   List<String> dateList = [];
 
@@ -17,13 +18,17 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setIsSnackBarShowing(bool value) {
+    isSnackBarShowing = value;
+    notifyListeners();
+  }
 
   void setIsLimitExceeded(bool value) {
     isLimitExceeded = value;
     notifyListeners();
   }
 
-  void setIsLoading(bool value){
+  void setIsLoading(bool value) {
     isLoading = value;
     notifyListeners();
   }

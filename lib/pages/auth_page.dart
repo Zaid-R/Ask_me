@@ -1,17 +1,19 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:ask_me2/widgets/offlineWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
 import 'package:random_string/random_string.dart';
 import '../providers/auth.dart';
 import 'package:provider/provider.dart';
+import '../utils/transition.dart';
 import '../widgets/field.dart';
 
 class AuthPage extends StatefulWidget {
@@ -204,10 +206,7 @@ class _AuthPageState extends State<AuthPage> {
               children: [
                 Text(
                   'مستخدم',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: !provider.isExpert ? 22 : 14,
-                      fontWeight: !provider.isExpert ? FontWeight.bold : null),
+                  style: userTypeTextStyle(isExpert: !provider.isExpert),
                 ),
                 Switch(
                     activeColor: Colors.blue,
@@ -217,15 +216,19 @@ class _AuthPageState extends State<AuthPage> {
                     }),
                 Text(
                   'خبير',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: provider.isExpert ? 22 : 14,
-                      fontWeight: provider.isExpert ? FontWeight.bold : null),
+                  style: userTypeTextStyle(isExpert: provider.isExpert),
                 )
               ],
             );
           },
         ));
+  }
+
+  TextStyle userTypeTextStyle({bool isExpert = true}) {
+    return TextStyle(
+        color: Colors.black,
+        fontSize: isExpert ? 22 : 14,
+        fontWeight: isExpert ? FontWeight.bold : null);
   }
 
   AppBar buildAppBar() {
@@ -237,7 +240,7 @@ class _AuthPageState extends State<AuthPage> {
               ? Container()
               : IconButton(
                   onPressed: () => Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => CategoriesPage())),
+                      CustomPageRoute(builder: (_) => CategoriesPage())),
                   icon: const Icon(Icons.close),
                 ),
         ),
@@ -344,197 +347,184 @@ class _AuthPageState extends State<AuthPage> {
     return Padding(
       padding: const EdgeInsets.only(top: 15),
       child: TextButton(
-          onPressed: () => showDialog(
-                barrierDismissible: false,
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                    title: Container(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        onPressed: () {
-                          forgotPasswardFromKey.currentState!.reset();
-                          emailController.clear();
-                          context.read<Auth>().setEmailNotExist(false);
-                          Navigator.pop(dialogContext);
-                        },
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.black,
-                          size: 20,
-                        ),
-                      ),
+        onPressed: () => showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (dialogContext) =>
+              Consumer<Auth>(builder: (context, provider, child) {
+            void sendCode() async {
+              if (!forgotPasswardFromKey.currentState!.validate()) {
+                return;
+              }
+              provider.setIsFrogotButtonLoading(true);
+              forgotPasswardFromKey.currentState!.save();
+              final doc = (await getUser(provider.email, provider.isExpert));
+              if (doc == null) {
+                provider.setEmailNotExist(true);
+                return;
+              }
+              provider.setEmailNotExist(false);
+              final data = doc.data();
+              provider.setAuthData(data);
+              if (provider.isExpert) {
+                writeID(doc.id);
+              } else {
+                writeEmial(provider.email);
+              }
+              writeName(data['first name'] + ' ' + data['last name']);
+
+              provider.setCode(randomNumeric(6));
+              sendEmail(
+                to: provider.email,
+                subject: 'Ask Me رمز تأكيد حسابك في تطبيق',
+                text: 'رمز التأكيد هو : ${provider.code}',
+              );
+              provider.setIsFrogotButtonLoading(false);
+              provider.setIsCodeSent(true);
+            }
+
+            void updatePassword() async {
+              if (!forgotPasswardFromKey.currentState!.validate()) {
+                return;
+              }
+              provider.setIsFrogotButtonLoading(true);
+              forgotPasswardFromKey.currentState!.save();
+              if (provider.isExpert) {
+                await expertsCollection
+                    .doc('verified')
+                    .collection('experts')
+                    .doc(readID())
+                    .update({'password': passwordController.text});
+              } else {
+                await usersCollection
+                    .doc(provider.email)
+                    .update({'password': passwordController.text});
+              }
+
+              displaySnackBar(
+                context,
+                text: 'تم تغيير كلمة السر',
+                snackBarColor: Colors.green[300],
+              );
+
+              //Use Future.delayed() so the user can ensure that password has been changed successfully
+              //then after 2 seconds move to the home page
+              await Future.delayed(const Duration(seconds: 2));
+              provider.setIsFrogotButtonLoading(false);
+              provider.clearForgotPasswordData();
+              while(Navigator.canPop(context)){
+                Navigator.pop(context);
+              }
+              Navigator.pushReplacement(
+                  context,
+                  CustomPageRoute(
+                      builder: (_) => provider.isExpert
+                          ? const ExpertPage()
+                          : const UserPage()));
+            }
+
+            return AlertDialog(
+              title: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    provider.isExpert ? 'خبير' : 'مستخدم',
+                    style: userTypeTextStyle(),
+                  ),
+                 SizedBox(width: MediaQuery.of(context).size.width*(provider.isExpert? 0.17:0.13),),
+                  IconButton(
+                    onPressed: () {
+                      forgotPasswardFromKey.currentState!.reset();
+                      emailController.clear();
+                      provider.clearForgotPasswordData();
+                      Navigator.pop(dialogContext);
+                    },
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.black,
+                      size: 20,
                     ),
-                    content: Consumer<Auth>(
-                      builder: (context, provider, child) {
-                        void sendCode() async {
-                          if (!forgotPasswardFromKey.currentState!.validate()) {
-                            return;
-                          }
-                          provider.setIsFrogotButtonLoading(true);
-                          forgotPasswardFromKey.currentState!.save();
-                          final doc = (await getUser(
-                              provider.email, provider.isExpert));
-                          if (doc == null) {
-                            provider.setEmailNotExist(true);
-                            return;
-                          }
-                          provider.setEmailNotExist(false);
-                          final data = doc.data();
-                          provider.setAuthData(data);
-                          if (provider.isExpert) {
-                            writeID(doc.id);
-                          } else {
-                            writeEmial(provider.email);
-                          }
-                          writeName(
-                              data['first name'] + ' ' + data['last name']);
-
-                          provider.setCode(randomNumeric(6));
-                          sendEmail(
-                            to: provider.email,
-                            subject: 'Ask Me رمز تأكيد حسابك في تطبيق',
-                            text: 'رمز التأكيد هو : ${provider.code}',
-                          );
-                          provider.setIsFrogotButtonLoading(false);
-                          provider.setIsCodeSent(true);
-                        }
-
-                        void updatePassword() async {
-                          if (!forgotPasswardFromKey.currentState!.validate()) {
-                            return;
-                          }
-                          provider.setIsFrogotButtonLoading(true);
-                          forgotPasswardFromKey.currentState!.save();
-                          if (provider.isExpert) {
-                            await expertsCollection
-                                .doc('verified')
-                                .collection('experts')
-                                .doc(readID())
-                                .update({'password': passwordController.text});
-                          } else {
-                            await usersCollection
-                                .doc(provider.email)
-                                .update({'password': passwordController.text});
-                          }
-
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: const Text(
-                              'تم تغيير كلمة السر',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w600),
-                            ),
-                            backgroundColor: Colors.green[300],
-                          ));
-                          //Use Future.delayed() so the user can ensure that password has been changed successfully
-                          //then after 2 seconds move to the home page
-                          Future.delayed(const Duration(seconds: 2));
-                          provider.setIsFrogotButtonLoading(false);
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => provider.isExpert
-                                      ? const ExpertPage()
-                                      : const UserPage()));
-                        }
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!provider.isCodePassed)
-                              Text(provider.isCodeSent
-                                  ? 'تم إرسال الرمز'
-                                  : 'سنقوم بإرسال رمز إلى ايميلك للتحقق من هويتك'),
-                            Form(
-                              key: forgotPasswardFromKey,
-                              child: provider.isCodePassed
-                                  ? Column(
-                                      children: [
-                                        buildPasswordField(
-                                            provider.isSignUp,
-                                            (newValue) => provider.addAuthData(
-                                                'password', newValue!)),
-                                        buildConfirmPasswordField(),
-                                      ],
-                                    )
-                                  : Column(
-                                      children: [
-                                        buildEmailField(true),
-                                        if (provider.emailNotExist)
-                                          AnimatedContainer(
-                                            alignment: Alignment.center,
-                                            duration: const Duration(
-                                                milliseconds: 500),
-                                            child: const Text(
-                                              'الايميل غير صحيح',
-                                              style:
-                                                  TextStyle(color: Colors.red),
-                                            ),
-                                          ),
-                                        // Field(
-                                        //     title: 'الايميل',
-                                        //     width: fieldWidth,
-                                        //     validator: (input) {
-                                        //       if (input != null) {
-                                        //         getUser(input.trim())
-                                        //             .then((value) {
-                                        //           if (value != null) {
-                                        //             return null;
-                                        //           }
-                                        //           return 'الايميل غير صحيح';
-                                        //         });
-                                        //       }
-                                        //       return 'الايميل غير صحيح';
-                                        //     }),
-                                        if (provider.isCodeSent)
-                                          Field(
-                                            title: 'رمز التأكيد',
-                                            inputType: TextInputType.number,
-                                            width: fieldWidth,
-                                            validator: (value) {
-                                              if (value != null &&
-                                                  provider.code
-                                                          .compareTo(value) ==
-                                                      0) {
-                                                passwordController.clear();
-                                                provider.setIsCodePassed(true);
-                                                return null;
-                                              } else {
-                                                return 'الرمز غير صحيح';
-                                              }
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                            ),
-                            provider.isFrogotButtonLoading
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
-                                    onPressed: provider.isCodePassed
-                                        ? updatePassword
-                                        : sendCode,
-                                    style: buildButtonStyle(
-                                        condition: false,
-                                        color: const Color.fromARGB(
-                                            255, 68, 138, 255)),
-                                    child: Text(
-                                      provider.isCodePassed
-                                          ? 'تغيير كلمة السر'
-                                          : provider.isCodeSent
-                                              ? 'تحقق'
-                                              : 'إرسال الرمز',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  )
-                          ],
-                        );
-                      },
-                    )),
+                  ),
+                ],
               ),
-          child: Text(
-            'هل نسيت كلمة السر؟',
-            style: linkTextStyle,
-          )),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!provider.isCodePassed)
+                    Text(provider.isCodeSent
+                        ? 'تم إرسال الرمز'
+                        : 'سنقوم بإرسال رمز إلى ايميلك للتحقق من هويتك'),
+                  Form(
+                    key: forgotPasswardFromKey,
+                    child: provider.isCodePassed
+                        ? Column(
+                            children: [
+                              buildPasswordField(
+                                  provider.isSignUp,
+                                  (newValue) => provider.addAuthData(
+                                      'password', newValue!)),
+                              buildConfirmPasswordField(),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              buildEmailField(true),
+                              if (provider.emailNotExist)
+                                AnimatedContainer(
+                                  alignment: Alignment.center,
+                                  duration: const Duration(milliseconds: 500),
+                                  child: const Text(
+                                    'الايميل غير صحيح',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              if (provider.isCodeSent)
+                                Field(
+                                  title: 'رمز التأكيد',
+                                  inputType: TextInputType.number,
+                                  width: fieldWidth,
+                                  validator: (value) {
+                                    if (value != null &&
+                                        provider.code.compareTo(value) == 0) {
+                                      passwordController.clear();
+                                      provider.setIsCodePassed(true);
+                                      return null;
+                                    } else {
+                                      return 'الرمز غير صحيح';
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                  ),
+                  provider.isFrogotButtonLoading
+                      ? const CircularProgressIndicator()
+                      : ElevatedButton(
+                          onPressed:
+                              provider.isCodePassed ? updatePassword : sendCode,
+                          style: buildButtonStyle(
+                              condition: false,
+                              color: const Color.fromARGB(255, 68, 138, 255)),
+                          child: Text(
+                            provider.isCodePassed
+                                ? 'تغيير كلمة السر'
+                                : provider.isCodeSent
+                                    ? 'تحقق'
+                                    : 'إرسال الرمز',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        )
+                ],
+              ),
+            );
+          }),
+        ),
+        child: Text(
+          'هل نسيت كلمة السر؟',
+          style: linkTextStyle,
+        ),
+      ),
     );
   }
 
@@ -756,90 +746,93 @@ class _AuthPageState extends State<AuthPage> {
       });
     }
 
-    return SafeArea(
-      child: OfflineWidget(
-        //isOfflineWidgetWithScaffold: true,
-        onlineWidget: Scaffold(
-          appBar: buildAppBar(),
-          body: buildBackground(
-            //Use material to add elevation for form container
-            buildFormBackground(
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      buildUserTypeSwitch(context),
-                      buildDivider(),
-                      buildFields(),
-                      if (!auth.isSignUp)
-                        buildForgotPassword(linkTextStyle, context),
-                      //Display this widgets when user want to create new account
-                      if (auth.isSignUp && !auth.isExpert)
-                        buildSelectBirthDate(
-                            context, DateTime.now(), auth.birthDate),
-                      if (auth.isSignUp && auth.isExpert)
-                        buildSpecializationRadioButtons(context),
-                      if (auth.isSignUp && auth.isExpert)
-                        Column(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Text(
-                                'آخر درجة علمية لك, يجب أن تكون شهادة بكالوريوس على الأقل إذا كنت تنوي دخول مجال علمي',
-                                maxLines: 3,
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            auth.pickedFile == null
-                                ? ElevatedButton(
-                                    onPressed: () async => context
-                                        .read<Auth>()
-                                        .setPickedFile(
-                                            await selectFile(true, context)),
-                                    style: buildSelectButtonStyle(),
-                                    child: Text(
-                                      'تحميل',
-                                      style: buildSelectButtonTextStyle(),
-                                    ),
-                                  )
-                                : Container(),
-                            auth.pickedFile == null
-                                ? Container()
-                                : Wrap(
-                                    alignment: WrapAlignment.center,
-                                    children: [
-                                      Text(auth.pickedFile!.name),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        // Remove the selected file
-                                        onPressed: () => context
-                                            .read<Auth>()
-                                            .setPickedFile(null),
-                                      )
-                                    ],
-                                  )
-                          ],
-                        ),
-                      buildDivider(),
-                      !auth.isLoading
-                          ? Column(
-                              children: [
-                                buildSubmitButton(),
-                                SizedBox(
-                                  height: screenHeight * 0.03,
+    return Stack(children: [
+      SafeArea(
+        child: OfflineWidget(
+          //isOfflineWidgetWithScaffold: true,
+          onlineWidget: Scaffold(
+            appBar: buildAppBar(),
+            body: buildBackground(
+              //Use material to add elevation for form container
+              buildFormBackground(
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        buildUserTypeSwitch(context),
+                        buildDivider(),
+                        buildFields(),
+                        if (!auth.isSignUp)
+                          buildForgotPassword(linkTextStyle, context),
+                        //Display this widgets when user want to create new account
+                        if (auth.isSignUp && !auth.isExpert)
+                          buildSelectBirthDate(
+                              context, DateTime.now(), auth.birthDate),
+                        if (auth.isSignUp && auth.isExpert)
+                          buildSpecializationRadioButtons(context),
+                        if (auth.isSignUp && auth.isExpert)
+                          Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Text(
+                                  'آخر درجة علمية لك, يجب أن تكون شهادة بكالوريوس على الأقل إذا كنت تنوي دخول مجال علمي',
+                                  maxLines: 3,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600),
                                 ),
-                                buildSwitchAuthModeButton(linkTextStyle),
-                              ],
-                            )
-                          : const CircularProgressIndicator(),
-                      const SizedBox(height: 20)
-                    ],
+                              ),
+                              auth.pickedFile == null
+                                  ? ElevatedButton(
+                                      onPressed: () async => context
+                                          .read<Auth>()
+                                          .setPickedFile(
+                                              await selectFile(true, context)),
+                                      style: buildSelectButtonStyle(),
+                                      child: Text(
+                                        'تحميل',
+                                        style: buildSelectButtonTextStyle(),
+                                      ),
+                                    )
+                                  : Container(),
+                              auth.pickedFile == null
+                                  ? Container()
+                                  : Wrap(
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        Text(auth.pickedFile!.name),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          // Remove the selected file
+                                          onPressed: () => context
+                                              .read<Auth>()
+                                              .setPickedFile(null),
+                                        )
+                                      ],
+                                    )
+                            ],
+                          ),
+                        buildDivider(),
+                        !auth.isLoading
+                            ? Column(
+                                children: [
+                                  buildSubmitButton(),
+                                  SizedBox(
+                                    height: screenHeight * 0.03,
+                                  ),
+                                  buildSwitchAuthModeButton(linkTextStyle),
+                                ],
+                              )
+                            : const CircularProgressIndicator(),
+                        const SizedBox(height: 20)
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -847,6 +840,11 @@ class _AuthPageState extends State<AuthPage> {
           ),
         ),
       ),
-    );
+      if (auth.isFrogotButtonLoading)
+        GestureDetector(
+          onTap: () {},
+          behavior: HitTestBehavior.opaque,
+        )
+    ]);
   }
 }

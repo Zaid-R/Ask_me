@@ -1,4 +1,4 @@
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
@@ -44,6 +44,7 @@ class _FieldState extends State<Field> {
         controller: widget.controller,
         validator:widget.validator,
         onSaved: widget.onSaved,
+        //TODO:use bool instead 
         textDirection: ![
           'الايميل',
           'معرف المستخدم',

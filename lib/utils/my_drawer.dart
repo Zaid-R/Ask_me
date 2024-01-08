@@ -1,13 +1,14 @@
-import 'package:ask_me2/local_data.dart';
+import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/models/menu_item.dart';
 import 'package:ask_me2/pages/auth_page.dart';
-import 'package:ask_me2/utils.dart';
+import 'package:ask_me2/utils/tools.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'widgets/offlineWidget.dart';
+import '../widgets/offlineWidget.dart';
+import 'transition.dart';
 
 class MyDrawer extends StatefulWidget {
   final List<MenuItem> listOfPages;
@@ -65,7 +66,7 @@ class _MyDrawerState extends State<MyDrawer> {
                         removeData();
                         Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
+                            CustomPageRoute(
                               builder: (_) => const AuthPage(),
                             ));
                       },
