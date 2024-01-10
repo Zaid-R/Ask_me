@@ -183,8 +183,8 @@ class _AuthPageState extends State<AuthPage> {
         controller: idController,
         inputType: TextInputType.number,
         validator: (value) {
-          if (value != null && (value.isEmpty /*|| value.length != 4*/)) {
-            return 'معرف المسختدم غير صحيح';
+          if (value != null && (value.isEmpty)) {
+            return 'ممنوع  ترك معرف المستخدم فارغ';
           }
           return null;
         },
@@ -307,7 +307,9 @@ class _AuthPageState extends State<AuthPage> {
         validator: (value) {
           if (value != null && isSignUp) {
             String errorMessage = '';
-            if (value.isEmpty || value.length < 6) {
+            if (value.isEmpty) {
+              return 'ممنوع ترك كلمة السر فارغة';
+            } else if (value.length < 6) {
               showMyDialog(
                   'يجب أن تكون كلمة السر مكونة من 6 خانات على الأقل', context);
               return errorMessage;
@@ -388,11 +390,17 @@ class _AuthPageState extends State<AuthPage> {
               }
               provider.setIsFrogotButtonLoading(true);
               forgotPasswardFromKey.currentState!.save();
+              final expert = (await expertsCollection
+                      .doc('verified')
+                      .collection('experts')
+                      .get())
+                  .docs
+                  .firstWhere((element) => element['email'] == provider.email);
               if (provider.isExpert) {
                 await expertsCollection
                     .doc('verified')
                     .collection('experts')
-                    .doc(readID())
+                    .doc(expert.id)
                     .update({'password': passwordController.text});
               } else {
                 await usersCollection
@@ -411,7 +419,19 @@ class _AuthPageState extends State<AuthPage> {
               await Future.delayed(const Duration(seconds: 2));
               provider.setIsFrogotButtonLoading(false);
               provider.clearForgotPasswordData();
-              while(Navigator.canPop(context)){
+              if (provider.isExpert) {
+                writeID(expert.id);
+                writeName(expert.data()['first name'] +
+                    ' ' +
+                    expert.data()['last name']);
+              } else {
+                final user =
+                    (await usersCollection.doc(provider.email).get()).data();
+
+                writeName(user!['first name'] + ' ' + user['last name']);
+                writeEmial(provider.email);
+              }
+              while (Navigator.canPop(context)) {
                 Navigator.pop(context);
               }
               Navigator.pushReplacement(
@@ -431,7 +451,10 @@ class _AuthPageState extends State<AuthPage> {
                     provider.isExpert ? 'خبير' : 'مستخدم',
                     style: userTypeTextStyle(),
                   ),
-                 SizedBox(width: MediaQuery.of(context).size.width*(provider.isExpert? 0.17:0.13),),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width *
+                        (provider.isExpert ? 0.17 : 0.13),
+                  ),
                   IconButton(
                     onPressed: () {
                       forgotPasswardFromKey.currentState!.reset();

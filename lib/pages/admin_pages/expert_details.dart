@@ -61,6 +61,7 @@ class ExpertDetailsPage extends StatelessWidget {
                       ' الاسم: ${data['first name']} ${data['last name']}',
                       style: infoStyle,
                     ),
+                    Text('معرف المستخدم :  ${snapshot..data!.id}',style: infoStyle,),
                     Text(
                       'التخصص: $specialization',
                       style: infoStyle,
