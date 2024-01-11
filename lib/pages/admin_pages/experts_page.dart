@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, must_be_immutable
 
+import 'package:ask_me2/models/expert.dart';
 import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/pages/admin_pages/expert_details.dart';
 import 'package:ask_me2/utils/tools.dart';
@@ -66,30 +67,26 @@ class _NewComerList extends StatelessWidget {
     bool isLoading =
         context.select<AdminProvider, bool>((provider) => provider.isLoading);
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('experts')
-          .doc('new comers')
-          .collection('experts')
-          .snapshots(),
+      stream:
+          expertsCollection.doc('new comers').collection('experts').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var experts = snapshot.data!.docs;
+        final experts = snapshot.data!.docs;
 
         return experts.isEmpty
             ? buildEmptyMessage('لا يوجد خبراء جدد')
             : ListView.builder(
                 itemCount: experts.length,
                 itemBuilder: (context, index) {
-                  var expert = experts[index];
-                  var data = expert.data();
+                  final newComer = NewComerExpert.fromJson(experts[index].data(),experts[index].id);
                   return Card(
                     color: Colors.indigo[200],
                     child: ListTile(
                       title: Text(
-                        '${data['first name']} ${data['last name']}',
+                        '${newComer.firstName} ${newComer.lastName}',
                         textAlign: TextAlign.right,
                       ),
                       onTap: isLoading
@@ -97,7 +94,7 @@ class _NewComerList extends StatelessWidget {
                           : () async {
                               context.read<AdminProvider>().setIsLoading(true);
                               String specialization =
-                                  await _getSpecialization(expert.id[0]);
+                                  await _getSpecialization(newComer.id[0]);
                               context.read<AdminProvider>().setIsLoading(false);
                               Navigator.push(
                                 context,
@@ -105,7 +102,7 @@ class _NewComerList extends StatelessWidget {
                                   builder: (_) => ExpertDetailsPage(
                                       specialization: specialization,
                                       isVerified: false,
-                                      expertId: expert.id),
+                                      expertId: newComer.id),
                                 ),
                               );
                             },
@@ -123,11 +120,11 @@ Future<String> _getSpecialization(String specId) async {
           .collection('specializations')
           .doc(specId)
           .get())
-      .data()!['name'];
+      .data()!['name'] as String;
 }
 
 class _VerifiedList extends StatelessWidget {
-  const _VerifiedList({super.key});
+  const _VerifiedList();
 
   @override
   Widget build(BuildContext context) {
@@ -147,8 +144,7 @@ class _VerifiedList extends StatelessWidget {
           ),
         ),
         body: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('experts')
+          stream: expertsCollection
               .doc('verified')
               .collection('experts')
               .snapshots(),
@@ -169,30 +165,29 @@ class _VerifiedList extends StatelessWidget {
                     : ListView.builder(
                         itemCount: experts.length,
                         itemBuilder: (context, index) {
-                          final expert = experts[index];
+                          final verifiedExpert =
+                              VerifiedExpert.fromJson(experts[index].data(),experts[index].id);
                           // Check if the search query is empty or if the expert ID contains the search query
 
-                          Map<String, dynamic> data = expert.data();
                           return Card(
-                            color: data['isSuspended']
+                            color: verifiedExpert.isSuspended
                                 ? Colors.red[200]
                                 : Colors.green[200],
                             child: ListTile(
                               title: Text(
-                                '${data['first name']} ${data['last name']}',
+                                '${verifiedExpert.firstName} ${verifiedExpert.lastName}',
                                 textAlign: TextAlign.right,
                               ),
                               onTap: () async {
                                 String specialization =
-                                    await _getSpecialization(expert.id[0]);
+                                    await _getSpecialization(verifiedExpert.id[0]);
                                 Navigator.push(
                                   context,
                                   CustomPageRoute(
-                                      //TODO: you can pass expert as a stream instead of isVerified and expertId, and shortcuting the code inside  ExpertDetailsPage
                                       builder: (context) => ExpertDetailsPage(
                                           specialization: specialization,
                                           isVerified: true,
-                                          expertId: expert.id)),
+                                          expertId: verifiedExpert.id)),
                                 );
                               },
                             ),

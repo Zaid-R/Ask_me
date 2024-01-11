@@ -27,7 +27,7 @@ class _OfflineWidgetState extends State<OfflineWidget> {
           Widget child,
         ) {
           final bool isConnected = connectivity != ConnectivityResult.none;
-      
+
           if (isConnected) {
             return widget.onlineWidget;
           } else {
@@ -52,14 +52,8 @@ class _OfflineWidgetState extends State<OfflineWidget> {
                 ),
               ),
             );
-      
-            return 
-            // widget.isOfflineWidgetWithScaffold
-            //     ? Scaffold(
-            //         body: offlineWidget,
-            //       )
-            //     : 
-                offlineWidget;
+
+            return offlineWidget;
           }
         },
         child: circularIndicator,

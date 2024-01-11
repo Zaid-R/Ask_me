@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/user.dart';
+
 class UserDetailsPage extends StatelessWidget {
   final DocumentReference<Map<String, dynamic>> userStream;
   const UserDetailsPage({
@@ -28,7 +30,7 @@ class UserDetailsPage extends StatelessWidget {
           if (!snapshot.hasData) {
             return circularIndicator;
           }
-          Map<String, dynamic> data = snapshot.data!.data()!;
+          final user = User.fromJson(snapshot.data!.data()!);
       
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -36,12 +38,12 @@ class UserDetailsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  ' الاسم: ${data['first name']} ${data['last name']}',
+                  ' الاسم: ${user.firstName} ${user.lastName}',
                   style: infoStyle,
                   textDirection: TextDirection.rtl,
                 ),
-                Text('${data['email']} :الايميل', style: infoStyle),
-                Text('${data['phoneNumber']} :رقم الهاتف', style: infoStyle),
+                Text('${user.email} :الايميل', style: infoStyle),
+                Text('${user.phoneNumber} :رقم الهاتف', style: infoStyle),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -49,15 +51,15 @@ class UserDetailsPage extends StatelessWidget {
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
                             style:
-                                buildButtonStyle(condition: data['isSuspended']),
+                                buildButtonStyle(condition: user.isSuspended),
                             onPressed: () async {
                               context.read<UserProvider>().setIsLoading(true);
                               await userStream
-                                  .update({'isSuspended': !data['isSuspended']});
+                                  .update({'isSuspended': !user.isSuspended});
                               context.read<UserProvider>().setIsLoading(false);
                             },
                             child: Text(
-                              data['isSuspended']
+                              user.isSuspended
                                   ? 'تفعيل الحساب'
                                   : 'تعطيل الحساب',
                               style: const TextStyle(

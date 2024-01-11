@@ -1,3 +1,4 @@
+import 'package:ask_me2/models/question.dart';
 import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,10 @@ class AnswerList extends StatelessWidget {
 
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
-                        .where((question) =>
-                            question['answerId'] != null &&answerIds.contains(question['answerId'] as String))
+                        .where((doc) {
+                          final question = Question.fromJson(doc.data(),doc.id);
+                          return question.hasAnswer &&answerIds.contains(question.answerId);
+                        })
                         .toList();
 
                 return docs.isEmpty
@@ -43,12 +46,12 @@ class AnswerList extends StatelessWidget {
                     : ListView.builder(
                         itemCount: docs.length,
                         itemBuilder: (context, index) {
-                          Map<String, dynamic> question = docs[index].data();
+                          final question = Question.fromJson(docs[index].data(),docs[index].id);
                           return buildQuestionTitleCard(
-                              title: question['title'],
+                              title: question.title,
                               context: context,
-                              questionId: docs[index].id,
-                              color: question['isHidden']
+                              questionId: question.id,
+                              color: question.isHidden
                                   ? hiddenQuestionColor
                                   : answerColor);
                         });

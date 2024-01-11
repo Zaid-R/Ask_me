@@ -15,7 +15,6 @@ const Color answerColor = Color.fromARGB(255, 165, 214, 167);
 const Color reportColor = Color.fromARGB(255, 239, 154, 154);
 const TextStyle infoStyle =
     TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
-const String adminId = '0000';
 const Color hiddenQuestionColor = Color.fromARGB(255, 189, 189, 189);
 final expertsCollection = FirebaseFirestore.instance.collection('experts');
 final usersCollection = FirebaseFirestore.instance.collection('users');

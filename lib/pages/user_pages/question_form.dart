@@ -94,7 +94,7 @@ class QuestionFormPage extends StatelessWidget {
     bool isUploadVideoAllowed = ['3', '2'].contains(categoryId);
     bool isBothAllowed = isUploadImageAllowed && isUploadVideoAllowed;
 
-    void _saveQuestionToDatabase(
+    void saveQuestionToDatabase(
       BuildContext context, {
       required bool isAnonymous,
       XFile? image,
@@ -112,7 +112,7 @@ class QuestionFormPage extends StatelessWidget {
         'isHidden':false,
       };
 
-      var categoryCollection = FirebaseFirestore.instance
+      final categoryCollection = FirebaseFirestore.instance
           .collection('questions')
           .doc(categoryId)
           .collection('questions');
@@ -248,7 +248,7 @@ class QuestionFormPage extends StatelessWidget {
                   provider.addToDates(DateTime.now().toString());
                   user.update({'askedQuestions': provider.dateList});
 
-                  _saveQuestionToDatabase(
+                  saveQuestionToDatabase(
                     context,
                     isAnonymous: provider.isAnonymous,
                     image: provider.image,

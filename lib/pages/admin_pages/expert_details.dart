@@ -3,6 +3,7 @@
 
 import 'dart:io';
 
+import 'package:ask_me2/models/expert.dart';
 import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,9 +14,6 @@ import 'package:provider/provider.dart';
 
 import '../../utils/transition.dart';
 import '../../widgets/offlineWidget.dart';
-
-CollectionReference<Map<String, dynamic>> _allExpertsCollection =
-    FirebaseFirestore.instance.collection('experts');
 
 
 class ExpertDetailsPage extends StatelessWidget {
@@ -40,8 +38,7 @@ class ExpertDetailsPage extends StatelessWidget {
           title: const Text('بيانات الخبير'),
         ),
         body: StreamBuilder(
-            stream: FirebaseFirestore.instance
-                .collection('experts')
+            stream: expertsCollection
                 .doc(docId)
                 .collection('experts')
                 .doc(expertId)
@@ -51,23 +48,33 @@ class ExpertDetailsPage extends StatelessWidget {
                 return circularIndicator;
               }
 
-              Map<String, dynamic> data = snapshot.data!.data()!;
+              // ignore: prefer_typing_uninitialized_variables
+              final expert;
+
+              if(isVerified){
+                expert = VerifiedExpert.fromJson(snapshot.data!.data()!,snapshot.data!.id);
+              }else{
+               expert= NewComerExpert.fromJson(snapshot.data!.data()!,snapshot.data!.id);
+              }
+              //final expert = isVerified? :
+              expert.setId(snapshot.data!.id);
+
               return Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      ' الاسم: ${data['first name']} ${data['last name']}',
+                      ' الاسم: ${expert.firstName} ${expert.lastName}',
                       style: infoStyle,
                     ),
-                    Text('معرف المستخدم :  ${snapshot..data!.id}',style: infoStyle,),
+                    Text('معرف المستخدم :  ${expert.id}',style: infoStyle,),
                     Text(
                       'التخصص: $specialization',
                       style: infoStyle,
                     ),
-                    Text('${data['email']} :الايميل', style: infoStyle),
-                    Text('${data['phoneNumber']} :رقم الهاتف',
+                    Text('${expert.email} :الايميل', style: infoStyle),
+                    Text('${expert.phoneNumber} :رقم الهاتف',
                         style: infoStyle),
                     ElevatedButton(
                       style: ButtonStyle(
@@ -78,7 +85,7 @@ class ExpertDetailsPage extends StatelessWidget {
                           context,
                           CustomPageRoute(
                             builder: (context) =>
-                                PDFViewerPage(pdfUrl: data['degree url']),
+                                PDFViewerPage(pdfUrl: expert.degreeUrl),
                           ),
                         );
                       },
@@ -95,7 +102,7 @@ class ExpertDetailsPage extends StatelessWidget {
                               ? const CircularProgressIndicator()
                               : ElevatedButton(
                                   style: buildButtonStyle(
-                                      condition: data['isSuspended']),
+                                      condition: expert.isSuspended),
                                   onPressed: () async {
                                     context
                                         .read<AdminProvider>()
@@ -106,14 +113,14 @@ class ExpertDetailsPage extends StatelessWidget {
                                         .collection('experts')
                                         .doc(expertId)
                                         .update({
-                                      'isSuspended': !data['isSuspended']
+                                      'isSuspended': !expert.isSuspended
                                     });
                                     context
                                         .read<AdminProvider>()
                                         .setIsLoading(false);
                                   },
                                   child: Text(
-                                    data['isSuspended']
+                                    expert.isSuspended
                                         ? 'تفعيل الحساب'
                                         : 'تعطيل الحساب',
                                     style: const TextStyle(
@@ -153,9 +160,9 @@ class ExpertDetailsPage extends StatelessWidget {
                                   context
                                       .read<AdminProvider>()
                                       .setIsLoading(true);
-                                  String newId = await moveToVerified(data);
+                                  String newId = await moveToVerified(snapshot.data!.data()!);
                                   sendEmail(
-                                    to: data['email'],
+                                    to: expert.email,
                                     subject: 'Ask Me تم قبولك كخبير في تطبيق',
                                     text: '''
             Ask Me تم قبولك كخبير في تطبيق
@@ -231,7 +238,7 @@ class ExpertDetailsPage extends StatelessWidget {
   Future<String> moveToVerified(Map<String, dynamic> data) async {
     //add to verified collection
     CollectionReference<Map<String, dynamic>> verifiedCollection =
-        _allExpertsCollection.doc('verified').collection('experts');
+        expertsCollection.doc('verified').collection('experts');
     String? lastIdInTheField = (await verifiedCollection.get())
         .docs
         .map((doc) => doc.id)
@@ -250,7 +257,7 @@ class ExpertDetailsPage extends StatelessWidget {
 
   void deleteNewComer() async {
     await Future.wait([
-      _allExpertsCollection
+      expertsCollection
           .doc('new comers')
           .collection('experts')
           .doc(expertId)

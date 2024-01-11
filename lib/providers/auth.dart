@@ -137,7 +137,7 @@ class Auth extends ChangeNotifier {
               .where((id) => id.startsWith('$radioGroupValue'))
               .lastOrNull;
 
-          var id = lastIdInTheField == null
+          final id = lastIdInTheField == null
               ? '${radioGroupValue}000'
               : (int.parse(lastIdInTheField) + 1).toString();
           // Create a storage reference from our app
@@ -173,7 +173,7 @@ class Auth extends ChangeNotifier {
           setPickedFile(null);
           setRadioGroupValue(0);
         } else {
-          var verifiedCollection =
+          final verifiedCollection =
               expertsCollection.doc('verified').collection('experts');
           bool isAdmin = authData['ID'] == '0000';
           if (!isAdmin) {
@@ -262,7 +262,7 @@ class Auth extends ChangeNotifier {
             return;
           }
         } else {
-          var user = await usersCollection.doc(authData['email']).get();
+          final user = await usersCollection.doc(authData['email']).get();
           bool isEmailExist = user.exists;
           if (isEmailExist) {
             showMyDialog(

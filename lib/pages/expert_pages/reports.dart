@@ -1,3 +1,4 @@
+import 'package:ask_me2/models/question.dart';
 import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,10 @@ class ReprotList extends StatelessWidget {
 
                 List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                     questions.data!.docs
-                        .where((question) =>
-                            question['reportId'] != null &&reportIds.contains(question['reportId'] as String))
+                        .where((doc) {
+                          final question = Question.fromJson(doc.data(), doc.id);
+                          return question.hasReport &&reportIds.contains(question.reportId);
+                        })
                         .toList();
 
                 return docs.isEmpty

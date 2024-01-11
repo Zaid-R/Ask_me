@@ -79,7 +79,7 @@ class CategoriesPage extends StatelessWidget {
                           ),
                           itemCount: titles.length,
                           itemBuilder: (context, index) {
-                            final title = titles[index].data()['name'];
+                            final title = titles[index].data()['name'].toString();
                             return GestureDetector(
                               onTap: () {
                                 // Navigate to a different page when an item is clicked
@@ -125,7 +125,6 @@ class CategoriesPage extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                  
                                   ],
                                 ),
                               ),

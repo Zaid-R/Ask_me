@@ -1,10 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:ask_me2/models/question.dart';
 import 'package:ask_me2/providers/admin_provider.dart';
 import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/admin.dart';
 import '../../utils/local_data.dart';
 import '../../widgets/offlineWidget.dart';
 import '../../widgets/video_preview.dart';
@@ -73,7 +75,8 @@ class DetailedQuestionPage extends StatelessWidget {
   }
 
   // Function to show the answer dialog
-  void showAnswerDialog(BuildContext context, {bool isEdit = false,String body = ''}) {
+  void showAnswerDialog(BuildContext context,
+      {bool isEdit = false, String body = ''}) {
     TextEditingController answerController = TextEditingController(text: body);
     showDialog(
       context: context,
@@ -121,10 +124,13 @@ class DetailedQuestionPage extends StatelessWidget {
                             //TODO: put snackbar in method and then use it twice
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(isEdit
-                                    ? 'تم تعديل الإجابة'
-                                    : 'تم إرسال الإجابة',style: const TextStyle(color: Colors.black)),
-                                    backgroundColor: Colors.green[400],
+                                content: Text(
+                                    isEdit
+                                        ? 'تم تعديل الإجابة'
+                                        : 'تم إرسال الإجابة',
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                                backgroundColor: Colors.green[400],
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -145,7 +151,7 @@ class DetailedQuestionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final reportFromKey = GlobalKey<FormState>();
 
-    final stream = FirebaseFirestore.instance
+    final questionStream = FirebaseFirestore.instance
         .collection('questions')
         .doc(catId ?? expertCategory)
         .collection('questions')
@@ -213,7 +219,7 @@ class DetailedQuestionPage extends StatelessWidget {
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final body = snapshot.data!.data()!['body'] as String ;
+                  final body = snapshot.data!.data()!['body'] as String;
 
                   return Stack(
                     children: [
@@ -239,17 +245,17 @@ class DetailedQuestionPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      
+
                       //show edit icon if the one who is see the question is expert
-                      if(readID()!=adminId&&readID()!=null)
-                      Container(
-                        alignment: Alignment.topLeft,
-                        child: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () =>
-                              showAnswerDialog(context, isEdit: true,body: body),
-                        ),
-                      )
+                      if (readID() != Admin.id && readID() != null)
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => showAnswerDialog(context,
+                                isEdit: true, body: body),
+                          ),
+                        )
                     ],
                   );
                 }),
@@ -301,8 +307,11 @@ class DetailedQuestionPage extends StatelessWidget {
 
                               // Show a snack bar
                               ScaffoldMessenger.of(context).showSnackBar(
-                                 SnackBar(
-                                  content: const Text('تم تقديم التقرير بنجاح',style: TextStyle(color: Colors.black),),
+                                SnackBar(
+                                  content: const Text(
+                                    'تم تقديم التقرير بنجاح',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                                   backgroundColor: Colors.green[400],
                                   duration: const Duration(seconds: 1),
                                 ),
@@ -328,13 +337,13 @@ class DetailedQuestionPage extends StatelessWidget {
         ),
         body: OfflineWidget(
           onlineWidget: StreamBuilder(
-              stream: stream.snapshots(),
+              stream: questionStream.snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                Map<String, dynamic> data = snapshot.data!.data()!;
-                DateTime originalDate = DateTime.parse(data['date']);
+                final question = Question.fromJson(
+                    snapshot.data!.data()!, snapshot.data!.id);
                 return SingleChildScrollView(
                   child: Container(
                     width: double.infinity,
@@ -342,18 +351,18 @@ class DetailedQuestionPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        if (readID() == adminId)
+                        if (readID() == Admin.id)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: buildButton(
-                                onPressed: () => stream
-                                    .update({'isHidden': !data['isHidden']}),
+                                onPressed: () => questionStream
+                                    .update({'isHidden': !question.isHidden}),
                                 label:
-                                    '${data['isHidden'] ? 'إظهار' : 'إخفاء'} السؤال',
+                                    '${question.isHidden ? 'إظهار' : 'إخفاء'} السؤال',
                                 context: context,
                                 buttonStyle: buildButtonStyle(
                                   condition: false,
-                                  color: !data['isHidden']
+                                  color: !question.isHidden
                                       ? Colors.grey
                                       : Colors.green[400],
                                 ),
@@ -391,15 +400,15 @@ class DetailedQuestionPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                data['title'],
+                                question.title,
                                 style: const TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               ),
-                              if (!(data['isAnonymous'] as bool))
+                              if (!question.isAnonymous)
                                 FutureBuilder(
                                     future: FirebaseFirestore.instance
                                         .collection('users')
-                                        .doc(data['email'])
+                                        .doc(question.email)
                                         .get(),
                                     builder: (_, snapshot) {
                                       if (!snapshot.hasData) {
@@ -409,7 +418,7 @@ class DetailedQuestionPage extends StatelessWidget {
                                           '${snapshot.data!['first name']} ${snapshot.data!['last name']}');
                                     }),
                               Text(
-                                "${originalDate.year}/${originalDate.month}/${originalDate.day}",
+                                "${question.date.year}/${question.date.month}/${question.date.day}",
                                 style: const TextStyle(fontSize: 16),
                               ),
                             ],
@@ -423,28 +432,28 @@ class DetailedQuestionPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  data['body'],
+                                  question.body,
                                   style: const TextStyle(fontSize: 16),
                                   textDirection: TextDirection.rtl,
                                 ),
-                                if (data['image url'] != null ||
-                                    data['video url'] != null)
+                                if (question.imageUrl.isNotEmpty ||
+                                    question.videoUrl.isNotEmpty)
                                   const SizedBox(
                                     height: 10,
                                   ),
                                 //TODO: work on loadingBuilder of Image.network()
-                                if (data['image url'] != null)
-                                  Image.network(data['image url']),
-                                if (data['video url'] != null)
-                                  VideoPreviewer(url: data['video url']),
+                                if (question.imageUrl.isNotEmpty)
+                                  Image.network(question.imageUrl),
+                                if (question.videoUrl.isNotEmpty)
+                                  VideoPreviewer(url: question.videoUrl),
                               ],
                             ),
                             color: Colors.grey[300]!),
                         //Answer button and report button
-                        if (data['answerId'] == null &&
-                            data['reportId'] == null &&
+                        if (question.answerId.isEmpty &&
+                            question.reportId.isEmpty &&
                             readID() != null &&
-                            readID() != adminId)
+                            readID() != Admin.id)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -462,15 +471,15 @@ class DetailedQuestionPage extends StatelessWidget {
                           ),
 
                         // Answer Text
-                        if (data['answerId'] != null)
+                        if (question.hasAnswer)
                           buildResponse(
-                              docId: data['answerId'], isAnswer: true),
+                              docId: question.answerId, isAnswer: true),
                         //if isCategoryDisplayed that means this question is invoked from AllQuestionsStream
                         //so the report should be displayed also for the user in the list of his questions
-                        if (data['reportId'] != null &&
+                        if (question.hasReport &&
                             (readID() != null || isCategoryDisplayed))
                           buildResponse(
-                              docId: data['reportId'], isAnswer: false)
+                              docId: question.reportId, isAnswer: false)
                       ],
                     ),
                   ),

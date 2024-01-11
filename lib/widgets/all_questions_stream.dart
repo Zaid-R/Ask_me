@@ -1,3 +1,4 @@
+import 'package:ask_me2/models/question.dart';
 import 'package:ask_me2/utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -42,37 +43,38 @@ class AllQuestionsStream extends StatelessWidget {
                                 return circularIndicator;
                               }
                               List<QueryDocumentSnapshot<Map<String, dynamic>>>
-                                  docs = questionCollections.data!.docs;
-
+                                  docs = questionCollections.data!.docs
+                                      .where((doc) {
+                                final question =
+                                    Question.fromJson(doc.data(),doc.id);
                                 if (isUser) {
-                                  docs = docs.where((element) {
-                                    final data = element.data();
-                                    return !data['isHidden'] &&
-                                        (data['email'] as String) == readEmail();
-                                  }).toList();
+                                  //question isn't hidden && user is loged in 
+                                  return !question.isHidden &&
+                                      question.email == readEmail();
                                 } else if (isReport) {
-                                  docs = docs
-                                      .where((element) =>
-                                          element.data()['reportId']  != null)
-                                      .toList();
+                                  // question has reported
+                                  return question.reportId.isNotEmpty;
                                 }
+                                return true;
+                              }).toList();
 
                               return Column(
-                                children: docs.map((question) {
-                                  Map<String, dynamic> data = question.data();
-                                  return data.isEmpty
-                                      ? Container()
-                                      : buildQuestionTitleCard(
+                                children: docs.map((doc) {
+                                  if(doc.data().isEmpty){
+                                    return Container();
+                                  }
+                                  final question = Question.fromJson(doc.data(),doc.id);
+                                  return  buildQuestionTitleCard(
                                           isCategoryDisplayed: true,
-                                          title: data['title'],
+                                          title: question.title,
                                           context: context,
                                           questionId: question.id,
                                           catId: categorySnapshots.data!.id,
-                                          color: data['isHidden']
+                                          color: question.isHidden
                                               ? hiddenQuestionColor
-                                              : data['answerId'] != null
+                                              : question.answerId.isNotEmpty
                                                   ? answerColor
-                                                  : data['reportId'] != null
+                                                  : question.reportId.isNotEmpty
                                                       ? reportColor
                                                       : null);
                                 }).toList(),

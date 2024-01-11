@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 
+import 'models/admin.dart';
 import 'providers/user_provider.dart';
 import 'utils/tools.dart';
 import 'widgets/offlineWidget.dart';
@@ -49,12 +50,6 @@ Future<void> main() async {
     //       ),
     // ),
   ]);
-
-  // writeEmial('alhumam.122@gmail.com');
-  // writeName('يوسف زغول');
-
-  // writeID(adminId);
-  // writeName('صهيب أبو قرع');
   runApp(const MyApp());
 }
 
@@ -88,7 +83,7 @@ class MyApp extends StatelessWidget {
         home: OfflineWidget(
             onlineWidget: readEmail() != null
                 ? const UserPage()
-                : readID() == adminId
+                : readID() == Admin.id
                     ? const AdminPage()
                     : readID() != null
                         ? const ExpertPage()

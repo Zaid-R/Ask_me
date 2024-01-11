@@ -3,6 +3,7 @@ import 'package:ask_me2/utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/user.dart';
 import '../../utils/transition.dart';
 
 class UserList extends StatelessWidget {
@@ -23,17 +24,15 @@ class UserList extends StatelessWidget {
               : ListView.builder(
                   itemCount: users.length,
                   itemBuilder: (context, index) {
-                    final user = users[index];
                     // Check if the search query is empty or if the expert ID contains the search query
-
-                    Map<String, dynamic> data = user.data();
+                    final user = User.fromJson(users[index].data());
                     return Card(
-                      color: data['isSuspended']
+                      color: user.isSuspended
                           ? Colors.red[200]
                           : Colors.green[200],
                       child: ListTile(
                         title: Text(
-                          '${data['first name']} ${data['last name']}',
+                          '${user.firstName} ${user.lastName}',
                           textAlign: TextAlign.right,
                         ),
                         onTap: () async {
@@ -41,7 +40,7 @@ class UserList extends StatelessWidget {
                             context,
                             CustomPageRoute(
                                 builder: (context) => UserDetailsPage(
-                                    userStream: user.reference)),
+                                    userStream: users[index].reference)),
                           );
                         },
                       ),

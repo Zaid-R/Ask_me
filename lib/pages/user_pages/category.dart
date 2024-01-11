@@ -72,8 +72,8 @@ class _CategoryState extends State<Category> {
                                   builder: (_) => const AuthPage()));
                         } else {
                           final dates =
-                              (userSnapshot.data!.get('askedQuestions') as List)
-                                  .map((e) => e as String)
+                              (userSnapshot.data!.get('askedQuestions') as List<String>)
+                                  .map((e) => e)
                                   .toList();
                           final tempo = <String>[];
                           if (dates.length == 3) {

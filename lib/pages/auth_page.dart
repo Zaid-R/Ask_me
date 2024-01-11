@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:ask_me2/utils/tools.dart';
 import 'package:intl/intl.dart';
 import 'package:random_string/random_string.dart';
+import '../models/admin.dart';
 import '../providers/auth.dart';
 import 'package:provider/provider.dart';
 import '../utils/transition.dart';
@@ -87,7 +88,7 @@ class _AuthPageState extends State<AuthPage> {
         ElevatedButton(
           style: buildSelectButtonStyle(),
           onPressed: () async {
-            var date = await showDatePicker(
+            final date = await showDatePicker(
               context: context,
               firstDate: now.subtract(const Duration(days: 365 * 70)),
               initialDate: birthDate,
@@ -143,7 +144,7 @@ class _AuthPageState extends State<AuthPage> {
             .instance
             .collection('specializations')
             .get();
-        var specializations = collection.docs;
+        final specializations = collection.docs;
         // ignore: use_build_context_synchronously
         showDialog(
             context: ctx,
@@ -153,7 +154,7 @@ class _AuthPageState extends State<AuthPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ...specializations.map((doc) {
-                          var specialization = doc.data();
+                          final specialization = doc.data();
                           return RadioListTile(
                             activeColor: Colors.blue,
                             title: Text(specialization['name']),
@@ -601,12 +602,12 @@ class _AuthPageState extends State<AuthPage> {
             auth.setIsLoading(false);
             return;
           }
-          var newComersCollection = (await FirebaseFirestore.instance
+          final newComersCollection = (await FirebaseFirestore.instance
               .collection('experts')
               .doc('new comers')
               .collection('experts')
               .get());
-          var verifiedCollection = (await FirebaseFirestore.instance
+          final verifiedCollection = (await FirebaseFirestore.instance
               .collection('experts')
               .doc('verified')
               .collection('experts')
@@ -651,9 +652,9 @@ class _AuthPageState extends State<AuthPage> {
         }
         //SignUp user
         else if (auth.isSignUp && !auth.isExpert) {
-          var usersCollection =
+          final usersCollection =
               (await FirebaseFirestore.instance.collection('users').get());
-          var list = usersCollection.docs
+          final list = usersCollection.docs
               .where((user) => user.data()['email'] == auth.authData['email']);
           if (list.isNotEmpty) {
             showMyDialog('الايميل مُستخدم مسبقاً', context);
@@ -663,10 +664,10 @@ class _AuthPageState extends State<AuthPage> {
         }
         //Login Expert
         else if (!auth.isSignUp && auth.isExpert) {
-          if (idController.text == adminId) {
+          if (idController.text == Admin.id) {
             auth.authenticate(context);
           } else {
-            var expert = (await FirebaseFirestore.instance
+            final expert = (await FirebaseFirestore.instance
                     .collection('experts')
                     .doc('verified')
                     .collection('experts')

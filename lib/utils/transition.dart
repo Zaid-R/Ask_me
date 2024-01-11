@@ -16,8 +16,8 @@ class CustomPageRoute<T> extends PageRouteBuilder<T> {
             const end = 1.0;
             const curve = Curves.easeInOutQuart;
 
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var scaleAnimation = animation.drive(tween);
+            final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            final scaleAnimation = animation.drive(tween);
 
             return ScaleTransition(scale: scaleAnimation, child: child);
           },
