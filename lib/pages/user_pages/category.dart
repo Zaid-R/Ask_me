@@ -12,8 +12,7 @@ import '../../utils/transition.dart';
 import '../../widgets/offlineWidget.dart';
 import 'question_form.dart';
 
-//TODO: make sure that StatefulWidget is used properly for every StatefulWidget page
-class Category extends StatefulWidget {
+class Category extends StatelessWidget {
   final String id;
   final String title;
 
@@ -23,11 +22,6 @@ class Category extends StatefulWidget {
     required this.title,
   });
 
-  @override
-  State<Category> createState() => _CategoryState();
-}
-
-class _CategoryState extends State<Category> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -39,10 +33,10 @@ class _CategoryState extends State<Category> {
             onlineWidget: Scaffold(
               appBar: AppBar(
                 title: Text(
-                  widget.title,
+                  title,
                 ),
               ),
-              body: QuestionList(categoryId: widget.id),
+              body: QuestionList(categoryId: id),
               floatingActionButton: StreamBuilder(
                   stream: FirebaseFirestore.instance
                       .collection('users')
@@ -72,8 +66,8 @@ class _CategoryState extends State<Category> {
                                   builder: (_) => const AuthPage()));
                         } else {
                           final dates =
-                              (userSnapshot.data!.get('askedQuestions') as List<String>)
-                                  .map((e) => e)
+                              (userSnapshot.data!.get('askedQuestions') as List)
+                                  .map((e) => e.toString())
                                   .toList();
                           final tempo = <String>[];
                           if (dates.length == 3) {
@@ -106,7 +100,7 @@ class _CategoryState extends State<Category> {
                               context,
                               CustomPageRoute(
                                   builder: (_) => QuestionFormPage(
-                                        categoryId: widget.id,
+                                        categoryId: id,
                                       )));
                         }
                       },

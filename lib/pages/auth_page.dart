@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:ask_me2/utils/local_data.dart';
 import 'package:ask_me2/pages/expert_pages/expert_page.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
@@ -274,24 +275,28 @@ class _AuthPageState extends State<AuthPage> {
 
   Field buildLastNameField() {
     return Field(
-        title: 'اسم العائلة',
-        validator: (value) {
-          return value!.isEmpty ? 'ادخل اسم العائلة' : null;
-        },
-        onSaved: (lastName) =>
-            context.read<Auth>().addAuthData('last name', lastName!.trim()),
-        width: fieldWidth);
+      title: 'اسم العائلة',
+      validator: (value) {
+        return value!.isEmpty ? 'ادخل اسم العائلة' : null;
+      },
+      onSaved: (lastName) =>
+          context.read<Auth>().addAuthData('last name', lastName!.trim()),
+      width: fieldWidth,
+      isDirectionRtl: true,
+    );
   }
 
   Field buildFirstNameField() {
     return Field(
-        title: 'الاسم الأول',
-        validator: (value) {
-          return value!.isEmpty ? 'ادخل اسمك الأول' : null;
-        },
-        onSaved: (firstName) =>
-            context.read<Auth>().addAuthData('first name', firstName!.trim()),
-        width: fieldWidth);
+      title: 'الاسم الأول',
+      validator: (value) {
+        return value!.isEmpty ? 'ادخل اسمك الأول' : null;
+      },
+      onSaved: (firstName) =>
+          context.read<Auth>().addAuthData('first name', firstName!.trim()),
+      width: fieldWidth,
+      isDirectionRtl: true,
+    );
   }
 
   Field buildPasswordField(bool isSignUp, Function(String? value) onSaved) {
@@ -306,11 +311,13 @@ class _AuthPageState extends State<AuthPage> {
         inputType: TextInputType.text,
         controller: passwordController,
         validator: (value) {
-          if (value != null && isSignUp) {
+          if (value == null || value.isEmpty) {
+            return 'كلمة السر فارغة';
+          }
+
+          if (isSignUp) {
             String errorMessage = '';
-            if (value.isEmpty) {
-              return 'ممنوع ترك كلمة السر فارغة';
-            } else if (value.length < 6) {
+            if (value.length < 6) {
               showMyDialog(
                   'يجب أن تكون كلمة السر مكونة من 6 خانات على الأقل', context);
               return errorMessage;
@@ -331,8 +338,9 @@ class _AuthPageState extends State<AuthPage> {
         width: fieldWidth);
   }
 
-  Field buildConfirmPasswordField() {
+  Field buildConfirmPasswordField({TextEditingController? controller}) {
     return Field(
+        controller: controller,
         isPassword: true,
         title: 'تأكيد كلمة السر',
         validator: (value) {
@@ -363,6 +371,7 @@ class _AuthPageState extends State<AuthPage> {
               final doc = (await getUser(provider.email, provider.isExpert));
               if (doc == null) {
                 provider.setEmailNotExist(true);
+                provider.setIsFrogotButtonLoading(false);
                 return;
               }
               provider.setEmailNotExist(false);
@@ -487,20 +496,30 @@ class _AuthPageState extends State<AuthPage> {
                                   provider.isSignUp,
                                   (newValue) => provider.addAuthData(
                                       'password', newValue!)),
-                              buildConfirmPasswordField(),
+                              buildConfirmPasswordField(
+                                controller: TextEditingController(text: ''),
+                              ),
                             ],
                           )
                         : Column(
                             children: [
                               buildEmailField(true),
                               if (provider.emailNotExist)
-                                AnimatedContainer(
-                                  alignment: Alignment.center,
-                                  duration: const Duration(milliseconds: 500),
-                                  child: const Text(
-                                    'الايميل غير صحيح',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
+                                AnimatedTextKit(
+                                  animatedTexts: [
+                                    ColorizeAnimatedText(
+                                      'الايميل غير صحيح',
+                                      speed: const Duration(milliseconds: 50),
+                                      textStyle: const TextStyle(
+                                          color: Colors.red, fontSize: 15),
+                                      colors: [
+                                        Colors.red,
+                                        Colors.yellow,
+                                        Colors.blue
+                                      ],
+                                    )
+                                  ],
+                                  isRepeatingAnimation: true,
                                 ),
                               if (provider.isCodeSent)
                                 Field(
@@ -558,7 +577,9 @@ class _AuthPageState extends State<AuthPage> {
         isPassword: false,
         inputType: TextInputType.emailAddress,
         validator: (value) {
-          if (value != null && (value.isEmpty || !value.contains('@'))) {
+          if (value == null || value.isEmpty) {
+            return 'الايميل فارغ';
+          } else if (!value.contains('@')) {
             return 'الايميل غير صحيح';
           }
           return null;
@@ -602,13 +623,11 @@ class _AuthPageState extends State<AuthPage> {
             auth.setIsLoading(false);
             return;
           }
-          final newComersCollection = (await FirebaseFirestore.instance
-              .collection('experts')
+          final newComersCollection = (await expertsCollection
               .doc('new comers')
               .collection('experts')
               .get());
-          final verifiedCollection = (await FirebaseFirestore.instance
-              .collection('experts')
+          final verifiedCollection = (await expertsCollection
               .doc('verified')
               .collection('experts')
               .get());
@@ -646,29 +665,29 @@ class _AuthPageState extends State<AuthPage> {
               context,
             );
           } else {
-            auth.authenticate(context);
+            await auth.authenticate(context);
             formKey.currentState!.reset();
+            emailController.clear();
+            passwordController.clear();
           }
         }
         //SignUp user
         else if (auth.isSignUp && !auth.isExpert) {
-          final usersCollection =
-              (await FirebaseFirestore.instance.collection('users').get());
-          final list = usersCollection.docs
+          final users = (await usersCollection.get());
+          final list = users.docs
               .where((user) => user.data()['email'] == auth.authData['email']);
           if (list.isNotEmpty) {
             showMyDialog('الايميل مُستخدم مسبقاً', context);
           } else {
-            auth.authenticate(context);
+            await auth.authenticate(context);
           }
         }
         //Login Expert
         else if (!auth.isSignUp && auth.isExpert) {
           if (idController.text == Admin.id) {
-            auth.authenticate(context);
+            await auth.authenticate(context);
           } else {
-            final expert = (await FirebaseFirestore.instance
-                    .collection('experts')
+            final expert = (await expertsCollection
                     .doc('verified')
                     .collection('experts')
                     .doc(idController.text)
@@ -681,13 +700,13 @@ class _AuthPageState extends State<AuthPage> {
                 context,
               );
             } else {
-              auth.authenticate(context);
+              await auth.authenticate(context);
             }
           }
         }
         //Login user
         else if (!auth.isSignUp && !auth.isExpert) {
-          auth.authenticate(context);
+          await auth.authenticate(context);
         }
         auth.setIsLoading(false);
       } catch (e) {

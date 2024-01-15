@@ -16,7 +16,7 @@ class AllQuestionsStream extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //TODO: find a way to display empty message here when docs are empty
+    
     return StreamBuilder(
         stream: FirebaseFirestore.instance.collection('questions').snapshots(),
         builder: (context, baseCollection) {

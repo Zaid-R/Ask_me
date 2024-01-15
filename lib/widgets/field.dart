@@ -11,6 +11,7 @@ class Field extends StatefulWidget {
   final TextInputType? inputType;
   final TextEditingController? controller;
   final bool isPassword;
+  final bool isDirectionRtl;
   bool _isObscureText;
 
   Field({
@@ -23,6 +24,7 @@ class Field extends StatefulWidget {
     this.inputType,
     this.controller,
     this.isPassword = false,
+    this.isDirectionRtl = false,
   }) : _isObscureText = isPassword;
 
   @override
@@ -42,24 +44,16 @@ class _FieldState extends State<Field> {
       child: TextFormField(
         cursorColor: Colors.grey[700],
         controller: widget.controller,
-        validator:widget.validator,
+        validator: widget.validator,
         onSaved: widget.onSaved,
-        //TODO:use bool instead 
-        textDirection: ![
-          'الايميل',
-          'معرف المستخدم',
-          'كلمة السر',
-          'تأكيد كلمة السر',
-          'رقم الهاتف'
-        ].contains(widget.title)
-            ? TextDirection.rtl
-            : null,
+        //TODO:use bool instead
+        textDirection: widget.isDirectionRtl ? TextDirection.rtl : null,
         obscureText: widget._isObscureText,
         keyboardType: widget.inputType,
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
-          //alignLabelWithHint: true,
-          floatingLabelBehavior:FloatingLabelBehavior.always,
+            //alignLabelWithHint: true,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
             floatingLabelAlignment: FloatingLabelAlignment.center,
             label: Text(
               widget.title,

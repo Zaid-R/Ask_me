@@ -15,7 +15,6 @@ import 'package:provider/provider.dart';
 import '../../utils/transition.dart';
 import '../../widgets/offlineWidget.dart';
 
-
 class ExpertDetailsPage extends StatelessWidget {
   final String expertId;
   final bool isVerified;
@@ -37,12 +36,12 @@ class ExpertDetailsPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('بيانات الخبير'),
         ),
-        body: StreamBuilder(
-            stream: expertsCollection
+        body: FutureBuilder(
+            future: expertsCollection
                 .doc(docId)
                 .collection('experts')
                 .doc(expertId)
-                .snapshots(),
+                .get(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return circularIndicator;
@@ -51,13 +50,13 @@ class ExpertDetailsPage extends StatelessWidget {
               // ignore: prefer_typing_uninitialized_variables
               final expert;
 
-              if(isVerified){
-                expert = VerifiedExpert.fromJson(snapshot.data!.data()!,snapshot.data!.id);
-              }else{
-               expert= NewComerExpert.fromJson(snapshot.data!.data()!,snapshot.data!.id);
+              if (isVerified) {
+                expert = VerifiedExpert.fromJson(
+                    snapshot.data!.data()!, snapshot.data!.id);
+              } else {
+                expert = NewComerExpert.fromJson(
+                    snapshot.data!.data()!, snapshot.data!.id);
               }
-              //final expert = isVerified? :
-              expert.setId(snapshot.data!.id);
 
               return Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -68,27 +67,31 @@ class ExpertDetailsPage extends StatelessWidget {
                       ' الاسم: ${expert.firstName} ${expert.lastName}',
                       style: infoStyle,
                     ),
-                    Text('معرف المستخدم :  ${expert.id}',style: infoStyle,),
+                    Text(
+                      'معرف المستخدم :  ${expert.id}',
+                      style: infoStyle,
+                    ),
                     Text(
                       'التخصص: $specialization',
                       style: infoStyle,
                     ),
                     Text('${expert.email} :الايميل', style: infoStyle),
-                    Text('${expert.phoneNumber} :رقم الهاتف',
-                        style: infoStyle),
+                    Text('${expert.phoneNumber} :رقم الهاتف', style: infoStyle),
                     ElevatedButton(
                       style: ButtonStyle(
                           backgroundColor: MaterialStatePropertyAll(
                               Colors.indigoAccent[400])),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          CustomPageRoute(
-                            builder: (context) =>
-                                PDFViewerPage(pdfUrl: expert.degreeUrl),
-                          ),
-                        );
-                      },
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                CustomPageRoute(
+                                  builder: (context) =>
+                                      PDFViewerPage(pdfUrl: expert.degreeUrl),
+                                ),
+                              );
+                            },
                       child: const Text(
                         'عرض الشهادة',
                         style: TextStyle(color: Colors.white),
@@ -133,35 +136,35 @@ class ExpertDetailsPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          isLoading
-                              ? const CircularProgressIndicator()
-                              : ElevatedButton(
-                                  style: ButtonStyle(
-                                      backgroundColor: MaterialStatePropertyAll(
-                                          Colors.red[400])),
-                                  onPressed: () async {
-                                    context
-                                        .read<AdminProvider>()
-                                        .setIsLoading(true);
-                                    deleteNewComer();
-                                    await getOldReference().delete();
-                                    context
-                                        .read<AdminProvider>()
-                                        .setIsLoading(false);
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    'رفض',
-                                    style: TextStyle(color: Colors.white),
-                                  )),
+                          ElevatedButton(
+                              style: ButtonStyle(
+                                  backgroundColor: MaterialStatePropertyAll(
+                                      Colors.red[400])),
+                              onPressed: isLoading
+                                  ? null
+                                  : () async {
+                                      context
+                                          .read<AdminProvider>()
+                                          .setIsLoading(true);
+                                      await deleteNewComer(deleteDegree: true);
+                                      context
+                                          .read<AdminProvider>()
+                                          .setIsLoading(false);
+                                      Navigator.pop(context);
+                                    },
+                              child: const Text(
+                                'رفض',
+                                style: TextStyle(color: Colors.white),
+                              )),
                           isLoading
                               ? const CircularProgressIndicator()
                               : buildMyElevatedButton(() async {
                                   context
                                       .read<AdminProvider>()
                                       .setIsLoading(true);
-                                  String newId = await moveToVerified(snapshot.data!.data()!);
-                                  sendEmail(
+                                  String newId = await moveToVerified(
+                                      snapshot.data!.data()!);
+                                  await sendEmail(
                                     to: expert.email,
                                     subject: 'Ask Me تم قبولك كخبير في تطبيق',
                                     text: '''
@@ -171,11 +174,11 @@ class ExpertDetailsPage extends StatelessWidget {
              مدير البرنامج صهيب أبو قرع
                                   ''',
                                   );
-                                  deleteNewComer();
+                                  await deleteNewComer();
                                   context
                                       .read<AdminProvider>()
                                       .setIsLoading(false);
-                                  Navigator.pop(context);
+                                    Navigator.pop(context);
                                 }, 'إرسال ايميل التسجيل'),
                         ],
                       )
@@ -197,7 +200,6 @@ class ExpertDetailsPage extends StatelessWidget {
                       .toList(),
                 ),
               );
-            
             }));
   }
 
@@ -255,15 +257,15 @@ class ExpertDetailsPage extends StatelessWidget {
     return newId;
   }
 
-  void deleteNewComer() async {
-    await Future.wait([
-      expertsCollection
-          .doc('new comers')
-          .collection('experts')
-          .doc(expertId)
-          .delete(),
-      getOldReference().delete(),
-    ]);
+  Future<void> deleteNewComer({bool deleteDegree = false}) async {
+    await expertsCollection
+        .doc('new comers')
+        .collection('experts')
+        .doc(expertId)
+        .delete();
+    if(deleteDegree) {
+      await getOldReference().delete();
+    }
   }
 }
 

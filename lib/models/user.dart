@@ -9,13 +9,13 @@ class User{
   late bool isSuspended;
 
   User.fromJson(Map<String,dynamic> json){
-    askedQuestions = json['askedQuestions'];
-    birthDate = json['birthDate'];
-    firstName = json['firstName'];
-    lastName = json['lastName'];
+    askedQuestions = (json['askedQuestions'] as List).map((element)=>element as String).toList();
+    birthDate = json['birth date'];
+    firstName = json['first name'];
+    lastName = json['last name'];
     password = json['password'];
     email = json['email'];
     phoneNumber = json['phoneNumber'];
-    isSuspended = json['isSuspended'];
+    isSuspended = json['isSuspended'] == 'true';
   }
 }

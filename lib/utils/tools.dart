@@ -46,7 +46,7 @@ Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getUser(
       .firstOrNull;
 }
 
-void sendEmail(
+Future<void> sendEmail(
     {required String to, required String subject, required String text}) async {
   final smtpServer = gmail('srrz0315@gmail.com', 'fpvopqdmvrbxiifd');
 

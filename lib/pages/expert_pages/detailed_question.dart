@@ -120,8 +120,7 @@ class DetailedQuestionPage extends StatelessWidget {
                                 isEdit: isEdit);
                             context.read<AdminProvider>().setIsLoading(false);
                             Navigator.pop(context);
-                            // Show a snack bar
-                            //TODO: put snackbar in method and then use it twice
+                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(

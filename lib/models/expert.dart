@@ -9,6 +9,7 @@ class NewComerExpert {
   late String id;
 
   NewComerExpert.fromJson(Map<String, dynamic> json,String id) {
+
     degreeUrl = json['degree url'];
     email = json['email'];
     firstName = json['first name'];

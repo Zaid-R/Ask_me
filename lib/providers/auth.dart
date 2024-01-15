@@ -121,8 +121,7 @@ class Auth extends ChangeNotifier {
     notifyListeners();
   }
 
-  //TODO: why you make return type bool or null ??
-  void authenticate(BuildContext context) async {
+  Future<void> authenticate(BuildContext context) async {
     try {
       bool isLogin = _authMode == AuthMode.logIn;
       //SignUp expert

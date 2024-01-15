@@ -9,6 +9,7 @@ import 'package:ask_me2/pages/user_pages/categories.dart';
 import 'package:ask_me2/pages/user_pages/user_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -27,9 +28,6 @@ class NoThumbScrollBehavior extends ScrollBehavior {
       };
 }
 
-//TODO: remove vars from project
-//TODO: create models for data in database
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Future.wait([
@@ -37,19 +35,12 @@ Future<void> main() async {
     Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     )
-    //     .then(
-    //   (value) => FirebaseFirestore.instance.collection('questions').get().then(
-    //         (value) => value.docs.forEach(
-    //           (element) => element.reference
-    //               .collection('questions')
-    //               .get()
-    //               .then((value) => value.docs.forEach((element) {
-    //                     element.reference.update({'isHidden': false});
-    //                   })),
-    //         ),
-    //       ),
-    // ),
   ]);
+  
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(const MyApp());
 }
 
