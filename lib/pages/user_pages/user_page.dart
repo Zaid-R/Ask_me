@@ -1,6 +1,6 @@
-import 'package:ask_me2/models/menu_item.dart';
-import 'package:ask_me2/utils/my_drawer.dart';
-import 'package:ask_me2/pages/user_pages/categories.dart';
+import '../../models/menu_item.dart';
+import '../../utils/my_drawer.dart';
+import '../../pages/user_pages/categories.dart';
 import 'package:flutter/material.dart';
 
 import '../../widgets/all_questions_stream.dart';

@@ -1,6 +1,6 @@
-import 'package:ask_me2/utils/local_data.dart';
-import 'package:ask_me2/pages/auth_page.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../utils/local_data.dart';
+import '../../pages/auth_page.dart';
+import '../../utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

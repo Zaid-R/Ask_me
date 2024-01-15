@@ -1,5 +1,5 @@
-import 'package:ask_me2/pages/admin_pages/user_details.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../pages/admin_pages/user_details.dart';
+import '../../utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

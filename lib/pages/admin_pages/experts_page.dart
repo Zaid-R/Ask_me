@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, must_be_immutable
 
-import 'package:ask_me2/models/expert.dart';
-import 'package:ask_me2/providers/admin_provider.dart';
-import 'package:ask_me2/pages/admin_pages/expert_details.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../models/expert.dart';
+import '../../providers/admin_provider.dart';
+import '../../pages/admin_pages/expert_details.dart';
+import '../../utils/tools.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';

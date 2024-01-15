@@ -1,4 +1,4 @@
-import 'package:ask_me2/utils/tools.dart';
+import '../utils/tools.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable

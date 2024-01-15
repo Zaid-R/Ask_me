@@ -1,14 +1,14 @@
 // ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:ask_me2/utils/local_data.dart';
-import 'package:ask_me2/pages/expert_pages/expert_page.dart';
-import 'package:ask_me2/pages/user_pages/user_page.dart';
-import 'package:ask_me2/pages/user_pages/categories.dart';
-import 'package:ask_me2/widgets/offlineWidget.dart';
+import '../../utils/local_data.dart';
+import '../../pages/expert_pages/expert_page.dart';
+import '../../pages/user_pages/user_page.dart';
+import '../../pages/user_pages/categories.dart';
+import '../../widgets/offlineWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../utils/tools.dart';
 import 'package:intl/intl.dart';
 import 'package:random_string/random_string.dart';
 import '../models/admin.dart';

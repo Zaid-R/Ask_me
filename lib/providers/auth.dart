@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ask_me2/utils/local_data.dart';
-import 'package:ask_me2/pages/admin_pages/admin_page.dart';
-import 'package:ask_me2/pages/expert_pages/expert_page.dart';
-import 'package:ask_me2/pages/user_pages/user_page.dart';
+import '../../utils/local_data.dart';
+import '../../pages/admin_pages/admin_page.dart';
+import '../../pages/expert_pages/expert_page.dart';
+import '../../pages/user_pages/user_page.dart';
 import 'dart:io';
-import 'package:ask_me2/utils/tools.dart';
+import '../../utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';

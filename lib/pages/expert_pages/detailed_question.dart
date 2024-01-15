@@ -1,8 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ask_me2/models/question.dart';
-import 'package:ask_me2/providers/admin_provider.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../models/question.dart';
+import '../../providers/admin_provider.dart';
+import '../../utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

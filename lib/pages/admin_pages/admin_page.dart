@@ -1,10 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:ask_me2/pages/admin_pages/users_page.dart';
+import '../../pages/admin_pages/users_page.dart';
 import 'package:flutter/material.dart';
 
-import 'package:ask_me2/models/menu_item.dart';
-import 'package:ask_me2/utils/my_drawer.dart';
-import 'package:ask_me2/pages/admin_pages/experts_page.dart';
+import '../../models/menu_item.dart';
+import '../../utils/my_drawer.dart';
+import '../../pages/admin_pages/experts_page.dart';
 
 import '../../widgets/all_questions_stream.dart';
 import '../../widgets/question_list.dart';

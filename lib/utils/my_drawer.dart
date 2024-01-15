@@ -1,8 +1,8 @@
-import 'package:ask_me2/utils/local_data.dart';
-import 'package:ask_me2/providers/admin_provider.dart';
-import 'package:ask_me2/models/menu_item.dart';
-import 'package:ask_me2/pages/auth_page.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../utils/local_data.dart';
+import '../providers/admin_provider.dart';
+import '../models/menu_item.dart';
+import '../pages/auth_page.dart';
+import '../utils/tools.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';

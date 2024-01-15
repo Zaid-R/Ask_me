@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, use_build_context_synchronously
-import 'package:ask_me2/utils/local_data.dart';
-import 'package:ask_me2/pages/auth_page.dart';
-import 'package:ask_me2/widgets/question_list.dart';
-import 'package:ask_me2/utils/tools.dart';
+import '../../utils/local_data.dart';
+import '../../pages/auth_page.dart';
+import '../../widgets/question_list.dart';
+import '../../utils/tools.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
