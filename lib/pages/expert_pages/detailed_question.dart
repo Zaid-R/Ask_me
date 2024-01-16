@@ -49,7 +49,7 @@ class DetailedQuestionPage extends StatelessWidget {
     _answerFormKey.currentState!.save();
     final answersCollection = FirebaseFirestore.instance.collection('answers');
     // Document ID for the answer
-    String answerDocId = '$expertCategory$questionId';
+    String answerDocId = '${readID()![0]}$questionId';
 
     if (isEdit) {
       await answersCollection.doc(answerDocId).update({'body': answerText});
@@ -67,7 +67,7 @@ class DetailedQuestionPage extends StatelessWidget {
       // Update the "answerId" field for the question
       await FirebaseFirestore.instance
           .collection('questions')
-          .doc(expertCategory)
+          .doc(readID()![0])
           .collection('questions')
           .doc(questionId)
           .update({'answerId': answerDocId});
@@ -152,7 +152,7 @@ class DetailedQuestionPage extends StatelessWidget {
 
     final questionStream = FirebaseFirestore.instance
         .collection('questions')
-        .doc(catId ?? expertCategory)
+        .doc(catId ?? readID()![0])
         .collection('questions')
         .doc(questionId);
 
@@ -161,7 +161,7 @@ class DetailedQuestionPage extends StatelessWidget {
       reportFromKey.currentState!.save();
 
       // Document ID for the report
-      String reportDocId = '$expertCategory$questionId';
+      String reportDocId = '${readID()![0]}$questionId';
 
       // Data for the report
       Map<String, dynamic> reportData = {
@@ -180,7 +180,7 @@ class DetailedQuestionPage extends StatelessWidget {
       // Update the "isReported" field for the question
       await FirebaseFirestore.instance
           .collection('questions')
-          .doc(expertCategory)
+          .doc(readID()![0])
           .collection('questions')
           .doc(questionId)
           .update({'reportId': reportDocId});

@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import '../utils/local_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +17,6 @@ const TextStyle infoStyle =
 const Color hiddenQuestionColor = Color.fromARGB(255, 189, 189, 189);
 final expertsCollection = FirebaseFirestore.instance.collection('experts');
 final usersCollection = FirebaseFirestore.instance.collection('users');
-String expertCategory = readID()![0];
 
 Widget circularIndicator = const Center(
   child: CircularProgressIndicator(),

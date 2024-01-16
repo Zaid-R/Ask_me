@@ -21,7 +21,6 @@ class QuestionList extends StatefulWidget {
 class _QuestionListState extends State<QuestionList> {
   @override
   Widget build(BuildContext context) {
-    final x = readID()![0];
     return readID() == Admin.id
         ? const AllQuestionsStream(isUser: false)
         : StreamBuilder(
@@ -63,7 +62,7 @@ class _QuestionListState extends State<QuestionList> {
                                 : question.isHidden
                                     ? hiddenQuestionColor
                                     : null,
-                            catId: widget.categoryId ?? expertCategory);
+                            catId: widget.categoryId ?? readID()![0]);
                       },
                     );
             },

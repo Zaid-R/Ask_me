@@ -20,7 +20,7 @@ class AnswerList extends StatelessWidget {
           return StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('questions')
-                  .doc(expertCategory)
+                  .doc(readID()![0])
                   .collection('questions')
                   .snapshots(),
               builder: (context, questions) {
