@@ -246,7 +246,7 @@ class DetailedQuestionPage extends StatelessWidget {
                       ),
 
                       //show edit icon if the one who is see the question is expert
-                      if (readID() != Admin.id && readID() != null)
+                      if (readID() != Admin.id && readID() != null&&isAnswer)
                         Container(
                           alignment: Alignment.topLeft,
                           child: IconButton(

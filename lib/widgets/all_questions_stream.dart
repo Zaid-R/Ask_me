@@ -21,7 +21,7 @@ class AllQuestionsStream extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('questions').snapshots(),
         builder: (context, baseCollection) {
           if (!baseCollection.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return circularIndicator;
           }
           return SingleChildScrollView(
             child: Column(
@@ -30,8 +30,7 @@ class AllQuestionsStream extends StatelessWidget {
                       stream: e.reference.snapshots(),
                       builder: (context, categorySnapshots) {
                         if (!categorySnapshots.hasData) {
-                          return const Center(
-                              child: CircularProgressIndicator());
+                          return circularIndicator;
                         }
 
                         return StreamBuilder(

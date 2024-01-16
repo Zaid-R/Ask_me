@@ -21,28 +21,27 @@ class QuestionList extends StatefulWidget {
 class _QuestionListState extends State<QuestionList> {
   @override
   Widget build(BuildContext context) {
+    final x = readID()![0];
     return readID() == Admin.id
         ? const AllQuestionsStream(isUser: false)
         : StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('questions')
-                .doc(widget.categoryId ?? expertCategory)
+                .doc(widget.categoryId ?? readID()![0])
                 .collection('questions')
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
+                return circularIndicator;
               }
 
               List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
                   snapshot.data!.docs.where((doc) {
                 final question = Question.fromJson(doc.data(),doc.id);
-                bool isAnswered = question.answerId.isNotEmpty;
-                bool isReported = question.reportId.isNotEmpty;
-                bool expertCondition = !isAnswered && !isReported;
+                bool expertCondition = !question.hasAnswer && !question.hasReport;
 
                 bool userCondition =
-                    !isReported && !question.isHidden && isAnswered;
+                    !question.hasReport && !question.isHidden && question.hasAnswer;
 
                 return readID() != null ? expertCondition : userCondition;
               }).toList();

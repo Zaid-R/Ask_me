@@ -429,18 +429,18 @@ class _AuthPageState extends State<AuthPage> {
               await Future.delayed(const Duration(seconds: 2));
               provider.setIsFrogotButtonLoading(false);
               provider.clearForgotPasswordData();
-              if (provider.isExpert) {
-                writeID(expert.id);
-                writeName(expert.data()['first name'] +
-                    ' ' +
-                    expert.data()['last name']);
-              } else {
-                final user =
-                    (await usersCollection.doc(provider.email).get()).data();
+              // if (provider.isExpert) {
+              //   writeID(expert.id);
+              //   writeName(expert.data()['first name'] +
+              //       ' ' +
+              //       expert.data()['last name']);
+              // } else {
+              //   final user =
+              //       (await usersCollection.doc(provider.email).get()).data();
 
-                writeName(user!['first name'] + ' ' + user['last name']);
-                writeEmial(provider.email);
-              }
+              //   writeName(user!['first name'] + ' ' + user['last name']);
+              //   writeEmial(provider.email);
+              // }
               while (Navigator.canPop(context)) {
                 Navigator.pop(context);
               }

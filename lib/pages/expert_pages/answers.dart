@@ -14,7 +14,7 @@ class AnswerList extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('answers').snapshots(),
         builder: (context, answers) {
           if (!answers.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return circularIndicator;
           }
 
           return StreamBuilder(
@@ -25,11 +25,11 @@ class AnswerList extends StatelessWidget {
                   .snapshots(),
               builder: (context, questions) {
                 if (!questions.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                  return circularIndicator;
                 }
 
                 List<String> answerIds = answers.data!.docs
-                    .where((answer) => answer.get('expertId') == readID())
+                    .where((answer) => answer.get('expertId').toString() == readID())
                     .map((e) => e.id)
                     .toList();
 
