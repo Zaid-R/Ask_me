@@ -33,12 +33,10 @@ class AnswerList extends StatelessWidget {
                     .map((e) => e.id)
                     .toList();
 
-                List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+                List<Question> docs =
                     questions.data!.docs
-                        .where((doc) {
-                          final question = Question.fromJson(doc.data(),doc.id);
-                          return question.hasAnswer &&answerIds.contains(question.answerId);
-                        })
+                        .map((doc)=> Question.fromJson(doc.data(),doc.id)
+                        ).where((question) =>  question.hasAnswer &&answerIds.contains(question.answerId))
                         .toList();
 
                 return docs.isEmpty
@@ -46,7 +44,7 @@ class AnswerList extends StatelessWidget {
                     : ListView.builder(
                         itemCount: docs.length,
                         itemBuilder: (context, index) {
-                          final question = Question.fromJson(docs[index].data(),docs[index].id);
+                          final question = docs[index];
                           return buildQuestionTitleCard(
                               title: question.title,
                               context: context,

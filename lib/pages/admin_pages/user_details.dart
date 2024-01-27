@@ -30,8 +30,7 @@ class UserDetailsPage extends StatelessWidget {
           if (!snapshot.hasData) {
             return circularIndicator;
           }
-          final user = User.fromJson(snapshot.data!.data()!);
-      
+          User user = User.fromJson(snapshot.data!.data()!);
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(

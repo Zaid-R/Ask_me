@@ -16,6 +16,6 @@ class User{
     password = json['password'];
     email = json['email'];
     phoneNumber = json['phoneNumber'];
-    isSuspended = json['isSuspended'] == 'true';
+    isSuspended = json['isSuspended'];
   }
 }

@@ -283,6 +283,7 @@ class Auth extends ChangeNotifier {
             addAuthData(
                 'birth date', DateFormat('yyyy-MM-dd').format(birthDate));
             addAuthData('askedQuestions', []);
+            addAuthData('isSuspended', false);
             usersCollection.doc(authData['email']).set(authData);
             clearAuthData();
             Navigator.pushReplacement(
@@ -296,6 +297,5 @@ class Auth extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
-    return null;
   }
 }
