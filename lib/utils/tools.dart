@@ -46,11 +46,11 @@ Future<QueryDocumentSnapshot<Map<String, dynamic>>?> getUser(
 
 Future<void> sendEmail(
     {required String to, required String subject, required String text}) async {
-  final smtpServer = gmail('srrz0315@gmail.com', 'fpvopqdmvrbxiifd');
+  final smtpServer = gmail('your email', 'code');
 
   // Create the email message
   final message = Message()
-    ..from = const Address('srrz0315@gmail.com', 'Sohaib Abo Garae')
+    ..from = const Address('your email', 'name')
     ..recipients.add(to)
     ..subject = subject
     ..text = text;
