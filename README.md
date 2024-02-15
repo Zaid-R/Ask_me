@@ -5,7 +5,7 @@ This app is made to answer your questions, but not by any one, only by experts.
 
 
 <p align="center">
-<img src="https://lh3.googleusercontent.com/u/0/drive-viewer/AEYmBYRrgrSuiU8ExhPwrRrSlN-5kThE_oYCPKoeTEVGHcdmfX10P97pSSeoj-_YHvcnAmM6RQ89_1tStgKJQmQlxMpzg-ui=w1920-h941">
+<img src="https://github.com/Zaid-R/Ask_me/blob/main/assets/ask_me_icon.png" width="200" height="200">
 </p>
 
 ## How it works ?
